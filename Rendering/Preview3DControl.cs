@@ -13,8 +13,8 @@ namespace TextureTinter.Rendering;
 
 public sealed class Preview3DControl : Control
 {
-    public static readonly StyledProperty<Bitmap?> TextureProperty =
-        AvaloniaProperty.Register<Preview3DControl, Bitmap?>(nameof(Texture));
+    public static readonly StyledProperty<PreviewTextureSet?> TextureSetProperty =
+        AvaloniaProperty.Register<Preview3DControl, PreviewTextureSet?>(nameof(TextureSet));
 
     public static readonly StyledProperty<ModelKind> ModelKindProperty =
         AvaloniaProperty.Register<Preview3DControl, ModelKind>(nameof(ModelKind));
@@ -22,18 +22,16 @@ public sealed class Preview3DControl : Control
     public static readonly StyledProperty<bool> AutoSpinProperty =
         AvaloniaProperty.Register<Preview3DControl, bool>(nameof(AutoSpin), true);
 
-    public Bitmap? Texture
+    public PreviewTextureSet? TextureSet
     {
-        get => GetValue(TextureProperty);
-        set => SetValue(TextureProperty, value);
+        get => GetValue(TextureSetProperty);
+        set => SetValue(TextureSetProperty, value);
     }
-
     public ModelKind ModelKind
     {
         get => GetValue(ModelKindProperty);
         set => SetValue(ModelKindProperty, value);
     }
-
     public bool AutoSpin
     {
         get => GetValue(AutoSpinProperty);
@@ -42,8 +40,13 @@ public sealed class Preview3DControl : Control
 
     float _yaw = 0.6f;
     float _pitch = 0.5f;
-    readonly DispatcherTimer _spinTimer;
 
+    float _zoom = 1.0f;
+    float _zoomTarget = 1.0f;
+    const float ZoomMin = 0.35f;
+    const float ZoomMax = 3.0f;
+
+    readonly DispatcherTimer _spinTimer;
     Point? _dragStart;
     float _dragYaw, _dragPitch;
 
@@ -55,19 +58,46 @@ public sealed class Preview3DControl : Control
         _spinTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
         _spinTimer.Tick += (_, _) =>
         {
+            bool needsRedraw = false;
+
             if (AutoSpin && _dragStart is null)
             {
                 _yaw += 0.012f;
-                InvalidateVisual();
+                needsRedraw = true;
             }
+
+            // Smooth zoom: approach target at ~20% per frame, snap when close.
+            if (MathF.Abs(_zoom - _zoomTarget) > 0.0005f)
+            {
+                _zoom += (_zoomTarget - _zoom) * 0.22f;
+                needsRedraw = true;
+            }
+            else if (_zoom != _zoomTarget)
+            {
+                _zoom = _zoomTarget;
+                needsRedraw = true;
+            }
+
+            if (needsRedraw) InvalidateVisual();
         };
         _spinTimer.Start();
+
+        // Intro animation: appear slightly zoomed-out and animate into place.
+        _zoom = 0.72f;
+        _zoomTarget = 1.0f;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _zoom = 0.72f;
+        _zoomTarget = 1.0f;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == TextureProperty || change.Property == ModelKindProperty)
+        if (change.Property == TextureSetProperty || change.Property == ModelKindProperty)
             InvalidateVisual();
     }
 
@@ -107,6 +137,18 @@ public sealed class Preview3DControl : Control
         _dragStart = null;
     }
 
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        base.OnPointerWheelChanged(e);
+        float delta = (float)e.Delta.Y;
+        if (MathF.Abs(delta) < 0.0001f) return;
+
+        // Multiplicative so zoom steps feel uniform at every level.
+        float factor = MathF.Pow(1.12f, delta);
+        _zoomTarget = Math.Clamp(_zoomTarget * factor, ZoomMin, ZoomMax);
+        e.Handled = true;
+    }
+
     public override void Render(DrawingContext ctx)
     {
         double bw = Bounds.Width;
@@ -121,83 +163,46 @@ public sealed class Preview3DControl : Control
         bg.GradientStops.Add(new GradientStop(Color.FromRgb(0x10, 0x12, 0x14), 1));
         ctx.FillRectangle(bg, new Rect(0, 0, bw, bh));
 
-        if (Texture is null) return;
+        var set = TextureSet;
+        if (set is null) return;
 
         float cx = (float)bw / 2f;
         float cy = (float)bh / 2f;
-        float scale = MathF.Min((float)bw, (float)bh) * 0.55f;
+        float scale = MathF.Min((float)bw, (float)bh) * 0.55f * _zoom;
 
-        var quads = ModelKind == ModelKind.Cube ? BuildCube() : BuildCross();
-        var projected = new List<(Vector2[] pts, Vector2[] uv, float depth)>(quads.Length);
-
-        float sYaw = MathF.Sin(_yaw),  cYaw = MathF.Cos(_yaw);
-        float sPit = MathF.Sin(_pitch), cPit = MathF.Cos(_pitch);
-
-        foreach (var (verts, uv) in quads)
+        if (ModelKind == ModelKind.Cross)
         {
-            var p2 = new Vector2[verts.Length];
-            float sumZ = 0f;
-            for (int i = 0; i < verts.Length; i++)
-            {
-                Vector3 v = verts[i];
-                Vector3 v1 = new(
-                    v.X * cYaw + v.Z * sYaw,
-                    v.Y,
-                    -v.X * sYaw + v.Z * cYaw);
-                Vector3 v2 = new(
-                    v1.X,
-                    v1.Y * cPit - v1.Z * sPit,
-                    v1.Y * sPit + v1.Z * cPit);
-                p2[i] = new Vector2(cx + v2.X * scale, cy - v2.Y * scale);
-                sumZ += v2.Z;
-            }
-            projected.Add((p2, uv, sumZ / verts.Length));
+            var bmp = set.PickCross();
+            if (bmp is null) return;
+            DrawCross(ctx, bmp, cx, cy, scale);
+            return;
         }
 
-        projected.Sort((a, b) => a.depth.CompareTo(b.depth));
-
-        float texW = (float)Texture.Size.Width;
-        float texH = (float)Texture.Size.Height;
-
-        foreach (var (pts, uv, _) in projected)
-        {
-            Vector2 p0 = pts[0], p1 = pts[1], p3 = pts[3];
-            Vector2 u = p1 - p0;
-            Vector2 v = p3 - p0;
-
-            float uSpan = MathF.Max(0.0001f, MathF.Abs(uv[1].X - uv[0].X) * texW);
-            float vSpan = MathF.Max(0.0001f, MathF.Abs(uv[3].Y - uv[0].Y) * texH);
-
-            var mat = new Matrix(
-                u.X / uSpan, u.Y / uSpan,
-                v.X / vSpan, v.Y / vSpan,
-                p0.X,        p0.Y);
-
-            using (ctx.PushTransform(mat))
-            using (ctx.PushRenderOptions(new RenderOptions
-                   {
-                       BitmapInterpolationMode = BitmapInterpolationMode.None
-                   }))
-            {
-                ctx.DrawImage(Texture, new Rect(0, 0, texW, texH));
-            }
-        }
+        DrawCube(ctx, set, cx, cy, scale);
     }
 
-    static (Vector3[] verts, Vector2[] uv)[] BuildCube()
+    void DrawCube(DrawingContext ctx, PreviewTextureSet set, float cx, float cy, float scale)
     {
-        return new[]
+        var faces = new (Vector3[] verts, Vector2[] uv, Bitmap? bmp)[]
         {
-            (new[] { V(0,0,1), V(1,0,1), V(1,1,1), V(0,1,1) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (new[] { V(1,0,0), V(0,0,0), V(0,1,0), V(1,1,0) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (new[] { V(0,0,0), V(0,0,1), V(0,1,1), V(0,1,0) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (new[] { V(1,0,1), V(1,0,0), V(1,1,0), V(1,1,1) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (new[] { V(0,1,1), V(1,1,1), V(1,1,0), V(0,1,0) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (new[] { V(0,0,0), V(1,0,0), V(1,0,1), V(0,0,1) }, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
+            // front  (+Z)
+            (new[] { V(0,0,1), V(1,0,1), V(1,1,1), V(0,1,1) }, QuadUVs(), set.PickFront()),
+            // back   (-Z)
+            (new[] { V(1,0,0), V(0,0,0), V(0,1,0), V(1,1,0) }, QuadUVs(), set.PickBack()),
+            // left   (-X)
+            (new[] { V(0,0,0), V(0,0,1), V(0,1,1), V(0,1,0) }, QuadUVs(), set.PickLeft()),
+            // right  (+X)
+            (new[] { V(1,0,1), V(1,0,0), V(1,1,0), V(1,1,1) }, QuadUVs(), set.PickRight()),
+            // top    (+Y)
+            (new[] { V(0,1,1), V(1,1,1), V(1,1,0), V(0,1,0) }, QuadUVs(), set.PickTop()),
+            // bottom (-Y)
+            (new[] { V(0,0,0), V(1,0,0), V(1,0,1), V(0,0,1) }, QuadUVs(), set.PickBottom()),
         };
+
+        ProjectAndDraw(ctx, faces, cx, cy, scale);
     }
 
-    static (Vector3[] verts, Vector2[] uv)[] BuildCross()
+    void DrawCross(DrawingContext ctx, Bitmap bmp, float cx, float cy, float scale)
     {
         Vector3 a = new( 0.5f, 0f,  0.5f);
         Vector3 b = new(-0.5f, 0f, -0.5f);
@@ -207,13 +212,88 @@ public sealed class Preview3DControl : Control
         var q1 = new[] { b, a, a + Vector3.UnitY, b + Vector3.UnitY };
         var q2 = new[] { c, d, d + Vector3.UnitY, c + Vector3.UnitY };
 
-        return new[]
+        var faces = new (Vector3[] verts, Vector2[] uv, Bitmap? bmp)[]
         {
-            (q1, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
-            (q2, new[] { UV(0,1), UV(1,1), UV(1,0), UV(0,0) }),
+            (q1, QuadUVs(), bmp),
+            (q2, QuadUVs(), bmp),
         };
+
+        ProjectAndDraw(ctx, faces, cx, cy, scale);
+    }
+
+    void ProjectAndDraw(DrawingContext ctx,
+                        (Vector3[] verts, Vector2[] uv, Bitmap? bmp)[] faces,
+                        float cx, float cy, float scale)
+    {
+        float sYaw = MathF.Sin(_yaw), cYaw = MathF.Cos(_yaw);
+        float sPit = MathF.Sin(_pitch), cPit = MathF.Cos(_pitch);
+
+        var projected = new List<(Vector2[] pts, Vector2[] uv, Bitmap bmp, float depth)>(faces.Length);
+
+        foreach (var (verts, uv, bmp) in faces)
+        {
+            if (bmp is null) continue;
+            var p2 = new Vector2[verts.Length];
+            float sumZ = 0;
+            for (int i = 0; i < verts.Length; i++)
+            {
+                var v = verts[i];
+                var v1 = new Vector3(v.X * cYaw + v.Z * sYaw, v.Y, -v.X * sYaw + v.Z * cYaw);
+                var v2 = new Vector3(v1.X, v1.Y * cPit - v1.Z * sPit, v1.Y * sPit + v1.Z * cPit);
+                p2[i] = new Vector2(cx + v2.X * scale, cy - v2.Y * scale);
+                sumZ += v2.Z;
+            }
+            projected.Add((p2, uv, bmp, sumZ / verts.Length));
+        }
+
+        projected.Sort((a, b) => a.depth.CompareTo(b.depth));
+
+        foreach (var (pts, uv, bmp, _) in projected)
+        {
+            float texW = (float)bmp.Size.Width;
+            float texH = (float)bmp.Size.Height;
+
+            // Locate the vertex with UV (0,0) [image top-left], (1,0) [image top-right],
+            // and (0,1) [image bottom-left]. Build the affine from those three.
+            int iTL = 0, iTR = 0, iBL = 0;
+            float dTL = float.MaxValue, dTR = float.MaxValue, dBL = float.MaxValue;
+            for (int i = 0; i < uv.Length; i++)
+            {
+                float a0 = uv[i].X * uv[i].X + uv[i].Y * uv[i].Y;
+                float b0 = (uv[i].X - 1) * (uv[i].X - 1) + uv[i].Y * uv[i].Y;
+                float c0 = uv[i].X * uv[i].X + (uv[i].Y - 1) * (uv[i].Y - 1);
+                if (a0 < dTL) { dTL = a0; iTL = i; }
+                if (b0 < dTR) { dTR = b0; iTR = i; }
+                if (c0 < dBL) { dBL = c0; iBL = i; }
+            }
+
+            Vector2 pTL = pts[iTL];
+            Vector2 pTR = pts[iTR];
+            Vector2 pBL = pts[iBL];
+
+            // Screen delta per image pixel along each axis.
+            Vector2 u = (pTR - pTL) / texW;
+            Vector2 v = (pBL - pTL) / texH;
+
+            var mat = new Matrix(u.X, u.Y, v.X, v.Y, pTL.X, pTL.Y);
+
+            using (ctx.PushTransform(mat))
+            using (ctx.PushRenderOptions(new RenderOptions
+                   { BitmapInterpolationMode = BitmapInterpolationMode.None }))
+            {
+                ctx.DrawImage(bmp, new Rect(0, 0, texW, texH));
+            }
+        }
     }
 
     static Vector3 V(float x, float y, float z) => new(x - 0.5f, y - 0.5f, z - 0.5f);
-    static Vector2 UV(float u, float v) => new(u, v);
+
+    // Quad UVs in vertex order: BL, BR, TR, TL (bottom-left, bottom-right, top-right, top-left)
+    static Vector2[] QuadUVs() => new[]
+    {
+        new Vector2(0, 1),  // BL
+        new Vector2(1, 1),  // BR
+        new Vector2(1, 0),  // TR
+        new Vector2(0, 0),  // TL
+    };
 }

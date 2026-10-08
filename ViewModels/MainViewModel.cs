@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -14,6 +15,7 @@ using CommunityToolkit.Mvvm.Input;
 using TextureTinter.Engine;
 using TextureTinter.Minecraft;
 using TextureTinter.Models;
+using TextureTinter.Rendering;
 using TextureTinter.Services;
 
 namespace TextureTinter.ViewModels;
@@ -32,8 +34,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private PreviewTile? _selectedPreviewTile;
     [ObservableProperty] private int _exceptionTabIndex;
     [ObservableProperty] private bool _autoSpin = true;
+    [ObservableProperty] private bool _isTextureMode;   // false = By Block, true = By Texture
+    [ObservableProperty] private bool _showOriginal;
 
-    [ObservableProperty] private Bitmap? _preview3DBitmap;
+    [ObservableProperty] private PreviewTextureSet? _preview3DSet;
     [ObservableProperty] private ModelKind _previewModelKind = ModelKind.Cube;
 
     [ObservableProperty] private ScanResult? _scan;
@@ -44,10 +48,12 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<BlockRow> SelectedBlocks { get; } = new();
     public ObservableCollection<string> Namespaces { get; } = new() { "All namespaces" };
 
+    [ObservableProperty] private string _textureSearch = "";
     [ObservableProperty] private string _pattern = "{dye}_{name}.png";
     [ObservableProperty] private string _exportDir = "";
 
     public ObservableCollection<TextureItem> TextureItems { get; } = new();
+    public ObservableCollection<BlockGroup> BlockGroups { get; } = new();
     public ObservableCollection<DyeItem> DyeItems { get; } = new();
     public ObservableCollection<CategoryItem> CategoryItems { get; } = new();
     public ObservableCollection<PreviewTile> PreviewTiles { get; } = new();
@@ -89,7 +95,7 @@ public partial class MainViewModel : ObservableObject
 
     public MainViewModel() => RefreshProjectList();
 
-    // ── Profile subscription ─────────────────────────────────
+    // ── Throttles & profile subscription ────────────────────
     void EnsureThrottles()
     {
         if (_tilesThrottle is null)
@@ -124,10 +130,9 @@ public partial class MainViewModel : ObservableObject
     void OnProfileChanged(object? sender, PropertyChangedEventArgs e)
     {
         RebuildPreview();
-
         EnsureThrottles();
         _tilesThrottle!.Stop(); _tilesThrottle.Start();
-        _saveThrottle!.Stop(); _saveThrottle.Start();
+        _saveThrottle!.Stop();  _saveThrottle.Start();
 
         if (e.PropertyName == nameof(RecolorSettings.Method) ||
             e.PropertyName == nameof(RecolorSettings.Method2))
@@ -240,7 +245,7 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex) { Status = "Could not open folder: " + ex.Message; }
     }
 
-    // ── Minecraft source pickers ─────────────────────────────
+    // ── Minecraft pickers ───────────────────────────────────
     [RelayCommand]
     void AutoDetect()
     {
@@ -319,7 +324,7 @@ public partial class MainViewModel : ObservableObject
         SaveProject();
     }
 
-    // ── Recolor commands ─────────────────────────────────────
+    // ── Recolor commands ────────────────────────────────────
     [RelayCommand] void SetModel(string kind) => PreviewModelKind = Enum.Parse<ModelKind>(kind, true);
     [RelayCommand] void SelectTab(string tab) => ExceptionTabIndex = ExceptionTabs.IndexOf(tab);
 
@@ -374,9 +379,29 @@ public partial class MainViewModel : ObservableObject
         Status = $"Added {added} texture(s)";
     }
 
-    // ── THE NEW ONE ─────────────────────────────────────────
-    /// <summary>Reset every slider in the currently-edited profile (default or exception) to factory defaults.
-    /// Keeps the exception's dye membership so the exception stays functional.</summary>
+    // ── Block group / texture list commands ─────────────────
+    [RelayCommand]
+void SelectGroup(BlockGroup? g)
+{
+    if (g?.MainTexture is null) return;
+    g.IsExpanded = true;                       // click-to-select expands the group
+    SelectedTextureItem = g.MainTexture;
+}
+
+    [RelayCommand]
+    void SelectTextureItem(TextureItem? t)
+    {
+        if (t is null) return;
+        SelectedTextureItem = t;
+    }
+
+    [RelayCommand]
+    void ToggleGroup(BlockGroup? g)
+    {
+        if (g is null) return;
+        g.IsExpanded = !g.IsExpanded;
+    }
+
     [RelayCommand]
     void ResetProfileToDefaults()
     {
@@ -385,7 +410,6 @@ public partial class MainViewModel : ObservableObject
         var current = CurrentProfile;
         if (current is null) return;
 
-        // Detach so we don't render 25 times while resetting 25 fields.
         current.PropertyChanged -= OnProfileChanged;
         try
         {
@@ -477,8 +501,6 @@ public partial class MainViewModel : ObservableObject
         dst.ShadowSat2 = src.ShadowSat2; dst.ExtremeComp2 = src.ExtremeComp2;
         dst.BrightShadowDark2 = src.BrightShadowDark2; dst.Tolerance2 = src.Tolerance2;
 
-        // Mutate Pre/Post in-place. Replacing the objects (dst.Pre = src.Pre.Clone())
-        // breaks the live TwoWay bindings used by the Adjustments tab.
         dst.Pre.Brightness = src.Pre.Brightness;
         dst.Pre.Contrast = src.Pre.Contrast;
         dst.Pre.Vibrance = src.Pre.Vibrance;
@@ -545,7 +567,7 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    // ── Stage 1 ──────────────────────────────────────────────
+    // ── Stage 1 ─────────────────────────────────────────────
     [RelayCommand]
     async Task ScanAsync()
     {
@@ -656,13 +678,28 @@ public partial class MainViewModel : ObservableObject
         for (int i = 2; ; i++) if (!taken.Contains($"{name}_{i}")) return $"{name}_{i}";
     }
 
-    // ── Stage 2 ──────────────────────────────────────────────
+    // ── Stage 2: texture/block list ─────────────────────────
     public void RefreshTextureList()
     {
         TextureItems.Clear();
+        BlockGroups.Clear();
         if (ProjectName is null) return;
+
+        var q = TextureSearch?.Trim().ToLowerInvariant() ?? "";
+        var groups = new Dictionary<string, BlockGroup>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var (key, entry) in Config.Textures)
         {
+            var name = entry.Name ?? key;
+            if (q.Length > 0 && !name.ToLowerInvariant().Contains(q)) continue;
+
+            var (groupKey, groupName) = FindBestOwnerBlock(entry);
+            if (string.IsNullOrEmpty(groupKey))
+            {
+                groupKey = "__ungrouped__";
+                groupName = "Ungrouped";
+            }
+
             Bitmap? thumb = null;
             try
             {
@@ -670,9 +707,72 @@ public partial class MainViewModel : ObservableObject
                 if (File.Exists(p)) thumb = new Bitmap(p);
             }
             catch { }
-            TextureItems.Add(new TextureItem(key, entry.Name ?? key, thumb, entry));
+
+            var item = new TextureItem(key, name, thumb, entry)
+            {
+                GroupKey = groupKey!,
+                GroupName = groupName ?? groupKey!,
+            };
+            TextureItems.Add(item);
+
+            if (!groups.TryGetValue(groupKey!, out var g))
+            {
+                g = new BlockGroup(groupKey!, groupName ?? groupKey!);
+                groups[groupKey!] = g;
+            }
+            g.Items.Add(item);
         }
+
+        // Second pass: sort, compute representative thumbnails, register groups.
+        foreach (var g in groups.Values.OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            g.RepresentativeThumbnail = g.MainTexture?.Thumbnail ?? g.Items.FirstOrDefault()?.Thumbnail;
+            BlockGroups.Add(g);
+        }
+
         OnPropertyChanged(nameof(TextureItems));
+        OnPropertyChanged(nameof(BlockGroups));
+    }
+
+    (string? key, string? name) FindBestOwnerBlock(TextureEntry entry)
+    {
+        if (entry.Blocks.Count == 0) return (null, null);
+
+        var entryName = (entry.Name ?? "").ToLowerInvariant();
+        if (entryName.Length == 0) return (null, null);
+
+        string? bestId = null;
+        int bestScore = int.MinValue;
+
+        foreach (var bid in entry.Blocks)
+        {
+            if (!Config.Blocks.ContainsKey(bid)) continue;
+            int score = ScoreBlockForTexture(bid, entryName);
+            if (score > bestScore) { bestScore = score; bestId = bid; }
+        }
+
+        if (bestId is null) return (null, null);
+        Config.Blocks.TryGetValue(bestId, out var block);
+        return (bestId, block?.Name ?? bestId.Split(':').Last());
+    }
+
+    static int ScoreBlockForTexture(string blockId, string entryName)
+    {
+        if (string.IsNullOrEmpty(entryName)) return 0;
+        var path = blockId.Split(':').LastOrDefault()?.ToLowerInvariant() ?? "";
+        int score = 0;
+
+        if (path == entryName)                                              score += 200;
+        else if (path.StartsWith(entryName) || path.EndsWith(entryName))    score += 100;
+        else if (path.Contains(entryName) || entryName.Contains(path))      score += 50;
+
+        if (path.Contains("frame"))                                    score -= 80;
+        if (path.Contains("item") && !path.Contains("block"))          score -= 30;
+        if (path.Contains("potted"))                                   score -= 20;
+        if (path.Contains("wall_torch") || path.Contains("torch"))     score -= 20;
+        if (path.Contains("sign") && !entryName.Contains("sign"))      score -= 20;
+
+        return score;
     }
 
     public void RefreshExceptionTabs()
@@ -705,7 +805,20 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    partial void OnSelectedTextureItemChanged(TextureItem? value) => SelectedTexture = value?.Entry;
+    // ── Selection & view-mode handlers ──────────────────────
+    partial void OnTextureSearchChanged(string value) => RefreshTextureList();
+
+    partial void OnSelectedTextureItemChanged(TextureItem? value)
+    {
+        // Update highlight flags on both views.
+        foreach (var g in BlockGroups)
+        {
+            g.IsSelected = value is not null && g.Items.Contains(value);
+            foreach (var it in g.Items)
+                it.IsSelected = ReferenceEquals(it, value);
+        }
+        SelectedTexture = value?.Entry;
+    }
 
     partial void OnSelectedTextureChanged(TextureEntry? value)
     {
@@ -737,6 +850,8 @@ public partial class MainViewModel : ObservableObject
         if (value is not null && value.DyeName != SelectedDye) SelectedDye = value.DyeName;
     }
 
+    partial void OnShowOriginalChanged(bool value) => RebuildPreview();
+
     void SyncSelectedTileFromDye()
     {
         if (SelectedDye is null) { SelectedPreviewTile = null; return; }
@@ -759,6 +874,7 @@ public partial class MainViewModel : ObservableObject
         SaveProject();
     }
 
+    // ── Stage 2: dye tiles ──────────────────────────────────
     public void RebuildAllPreviews()
     {
         PreviewTiles.Clear();
@@ -793,29 +909,122 @@ public partial class MainViewModel : ObservableObject
         SyncSelectedTileFromDye();
     }
 
+    // ── Stage 2: 3D preview ─────────────────────────────────
     public void RebuildPreview()
     {
         var entry = CurrentEntry;
-        if (entry is null || SelectedDye is null) { Preview3DBitmap = null; return; }
+        if (entry is null || SelectedDye is null) { Preview3DSet = null; return; }
+
         var profile = CurrentProfile;
-        if (profile is null) { Preview3DBitmap = null; return; }
+        if (profile is null) { Preview3DSet = null; return; }
+
         var cat = entry.Category ?? CategoryNames.FirstOrDefault();
         if (cat is null || !Config.Categories.TryGetValue(cat, out var category)) return;
+
         var hex = category.Colors.TryGetValue(SelectedDye, out var h) ? h : Config.Dyes[SelectedDye].Color;
         var color = ColorMath.HexToRgb(hex);
+
         var key = CurrentTextureKey;
-        if (key is null) { Preview3DBitmap = null; return; }
+        if (key is null) { Preview3DSet = null; return; }
 
         try
         {
-            Config.Compensation.TryGetValue($"{key}|{cat}|{SelectedDye}", out var comp);
-            var src = GetSourceImage(key);
-            var outImg = RenderPipeline.Render(src, color, profile, comp);
-            Preview3DBitmap = outImg.ToBitmap();
+            var (ownerId, _) = FindBestOwnerBlock(entry);
+            var ownerBlock = ownerId is not null && Config.Blocks.TryGetValue(ownerId, out var ob) ? ob : null;
+
+            var set = new PreviewTextureSet();
+
+            if (ownerBlock is null)
+            {
+                set.All = ShowOriginal ? LoadRaw(key)
+                                       : RenderOneTexture(key, profile, color, cat, null);
+            }
+            else
+            {
+                foreach (var (slot, tid) in ownerBlock.Slots)
+                {
+                    var slotKey = CacheKeyFor(tid);
+                    var bmp = ShowOriginal
+                        ? LoadRaw(slotKey)
+                        : RenderSlot(slotKey, tid, profile, color, cat);
+
+                    switch (slot)
+                    {
+                        case "all":      set.All    ??= bmp; break;
+                        case "top":      set.Top    ??= bmp; break;
+                        case "up":       set.Top    ??= bmp; break;
+                        case "bottom":   set.Bottom ??= bmp; break;
+                        case "down":     set.Bottom ??= bmp; break;
+                        case "side":     set.Side   ??= bmp; break;
+                        case "north":    set.Front  ??= bmp; break;
+                        case "south":    set.Back   ??= bmp; break;
+                        case "east":     set.Right  ??= bmp; break;
+                        case "west":     set.Left   ??= bmp; break;
+                        case "front":    set.Front  ??= bmp; break;
+                        case "back":     set.Back   ??= bmp; break;
+                        case "planks":   set.Side   ??= bmp; break;
+                        case "end":
+                            set.Top    ??= bmp;
+                            set.Bottom ??= bmp;
+                            break;
+                        case "cross":    set.Cross  ??= bmp; break;
+                        case "particle": break;
+                        default:         set.All    ??= bmp; break;
+                    }
+                }
+            }
+
+            Preview3DSet = set;
+
+            bool isCross =
+                ownerBlock?.ModelShape == "Cross" ||
+                (set.Cross is not null &&
+                 set.All is null && set.Top is null && set.Bottom is null &&
+                 set.Side is null && set.Front is null && set.Back is null &&
+                 set.Left is null && set.Right is null);
+
+            PreviewModelKind = isCross ? ModelKind.Cross : ModelKind.Cube;
         }
         catch (Exception ex) { Status = "Preview failed: " + ex.Message; }
+    }
 
-        PreviewModelKind = entry.ModelKind;
+    Bitmap? RenderOneTexture(string key, RecolorSettings profile, Vector3 color, string cat,
+                             CompensationSettings? comp)
+    {
+        try
+        {
+            var src = GetSourceImage(key);
+            var outImg = RenderPipeline.Render(src, color, profile, comp);
+            return outImg.ToBitmap();
+        }
+        catch { return null; }
+    }
+
+    Bitmap? RenderSlot(string slotKey, string slotTid, RecolorSettings currentProfile,
+                       Vector3 color, string cat)
+    {
+        if (Config.Textures.TryGetValue(slotKey, out var sibling))
+        {
+            var profile = ReferenceEquals(sibling, CurrentEntry)
+                ? currentProfile
+                : sibling.Settings;
+            Config.Compensation.TryGetValue($"{slotKey}|{cat}|{SelectedDye}", out var scomp);
+            return RenderOneTexture(slotKey, profile, color, cat, scomp);
+        }
+        return RenderOneTexture(slotKey, currentProfile, color, cat, null);
+    }
+
+    Bitmap? LoadRaw(string key)
+    {
+        try
+        {
+            var p = Path.Combine(ProjectService.ProjectDir(ProjectName!), key);
+            if (!File.Exists(p)) return null;
+            using var b = new Bitmap(p);
+            var img = TexImage.FromBitmap(b);
+            return img.ToBitmap();
+        }
+        catch { return null; }
     }
 
     TexImage GetSourceImage(string key)
@@ -833,7 +1042,7 @@ public partial class MainViewModel : ObservableObject
         return TexImage.FromBitmap(bmp);
     }
 
-    // ── Stage 3 ──────────────────────────────────────────────
+    // ── Stage 3 ─────────────────────────────────────────────
     [RelayCommand]
     async Task ExportAsync()
     {

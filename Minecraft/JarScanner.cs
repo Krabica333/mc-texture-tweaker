@@ -84,7 +84,7 @@ public static class JarScanner
             try { AddSource(ModLabel(f), ZipFile.OpenRead(f)); }
             catch { res.Warnings.Add("Could not open " + Path.GetFileName(f)); }
 
-        // 1) Index everything
+        // 1) Index
         var bstates = new Dictionary<string, (int, string)>();
         var models = new Dictionary<string, (int, string)>();
         var anim = new HashSet<string>();
@@ -124,19 +124,19 @@ public static class JarScanner
         }
         res.Sources.AddRange(sources);
 
-        // 2) Read each blockstate -> models -> textures
+        // 2) Resolve a model → slots, tinted flag, root-parent chain
         string Nid(string s) => s.Contains(':') ? s : "minecraft:" + s;
-        var mcache = new Dictionary<string, (Dictionary<string, string> slots, bool tinted)>();
+        var mcache = new Dictionary<string, (Dictionary<string, string> slots, bool tinted, string? root)>();
 
-        (Dictionary<string, string> slots, bool tinted) Resolve(string mid, int guard = 0)
+        (Dictionary<string, string> slots, bool tinted, string? root) Resolve(string mid, int guard = 0)
         {
             if (mcache.TryGetValue(mid, out var c)) return c;
-            if (guard > 16) return (new(), false);
-            if (!models.TryGetValue(mid, out var loc)) return (new(), false);
+            if (guard > 24) return (new(), false, null);
+            if (!models.TryGetValue(mid, out var loc)) return (new(), false, null);
 
             var zip = sources[loc.Item1].zip;
             var entry = zip.GetEntry(loc.Item2);
-            if (entry == null) return (new(), false);
+            if (entry == null) return (new(), false, null);
             using var s = entry.Open();
             using var doc = JsonDocument.Parse(s);
             var root = doc.RootElement;
@@ -154,8 +154,16 @@ public static class JarScanner
 
             Dictionary<string, string> parentSlots = new();
             bool parentTinted = false;
+            string? parentRoot = null;
+            string? parentRef = null;
             if (root.TryGetProperty("parent", out var par) && par.ValueKind == JsonValueKind.String)
-                (parentSlots, parentTinted) = Resolve(Nid(par.GetString()!), guard + 1);
+            {
+                parentRef = Nid(par.GetString()!);
+                var (ps, pt, pr) = Resolve(parentRef, guard + 1);
+                parentSlots = ps;
+                parentTinted = pt;
+                parentRoot = pr;   // will be null at the top of the chain; that's fine, we'll patch below
+            }
 
             string? Deref(string v, int g = 0)
             {
@@ -171,7 +179,11 @@ public static class JarScanner
                 var d = Deref(v);
                 if (d != null) slots[k] = d;
             }
-            var result = (slots, tinted || parentTinted);
+
+            // Root parent = self if no parent, else the deepest root the parent chain found.
+            string? thisRoot = parentRoot ?? (parentRef is null ? mid : null);
+
+            var result = (slots, tinted || parentTinted, thisRoot);
             mcache[mid] = result;
             return result;
         }
@@ -241,10 +253,13 @@ public static class JarScanner
 
                 var slots = new Dictionary<string, string>();
                 bool tinted = false;
+                string? rootParent = null;
                 foreach (var mid in modelIds)
                 {
-                    var (ms, mt) = Resolve(mid);
+                    var (ms, mt, mr) = Resolve(mid);
                     tinted |= mt;
+                    // Prefer the first non-null root we see.
+                    if (rootParent is null && mr is not null) rootParent = mr;
                     foreach (var (k, v) in ms)
                         if (!slots.ContainsKey(k) && !slots.ContainsValue(v)) slots[k] = v;
                 }
@@ -260,6 +275,9 @@ public static class JarScanner
                 if (slots.Values.Any(t => anim.Contains(t))) flags.Add("animated");
                 if (slots.Values.Any(t => !res.Textures.ContainsKey(t))) flags.Add("missing texture");
 
+                var shape = ClassifyShape(rootParent);
+                if (shape == "Cross") flags.Add("cross");
+
                 res.Blocks[bid] = new BlockInfo
                 {
                     Name = name,
@@ -267,6 +285,8 @@ public static class JarScanner
                     Slots = slots,
                     Props = props.ToDictionary(k => k.Key, v => v.Value.OrderBy(x => x).ToList()),
                     Flags = flags,
+                    RootParent = rootParent,
+                    ModelShape = shape,
                 };
             }
         }
@@ -297,6 +317,22 @@ public static class JarScanner
 
         static (string, string) Split(string s) { var i = s.IndexOf(':'); return (s[..i], s[(i + 1)..]); }
         static string TitleCase(string s) => string.Join(' ', s.Split('_').Select(w => char.ToUpper(w[0]) + w[1..]));
+    }
+
+    // Classify geometry from the root parent id.
+    static string ClassifyShape(string? rootParent)
+    {
+        if (string.IsNullOrEmpty(rootParent)) return "CubeAll";
+        var short_ = rootParent.Split(':').Last();      // "block/cross"
+
+        if (short_.EndsWith("cross")) return "Cross";
+        if (short_.EndsWith("cube_bottom_top")) return "BottomTop";
+        if (short_.EndsWith("cube_column") || short_.EndsWith("cube_column_horizontal")) return "Column";
+        if (short_.EndsWith("orientable") || short_.EndsWith("orientable_with_bottom") || short_.EndsWith("orientable_vertical"))
+            return "Orientable";
+        if (short_.EndsWith("carpet") || short_.EndsWith("thin_block") || short_.EndsWith("lily_pad")) return "Flat";
+        // cube / cube_all / cube_mirrored_all / anything else → cube
+        return "CubeAll";
     }
 
     static string ModLabel(string f)

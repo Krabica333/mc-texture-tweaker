@@ -19,7 +19,6 @@ public sealed class ProjectConfig
         var cfg = new ProjectConfig();
         foreach (var (name, hex) in Models.Dyes.DefaultPalette)
             cfg.Dyes[name] = new Dye { Color = hex };
-
         foreach (var (name, k) in new (string, float)[] { ("wool", 1.0f), ("brick", 0.8f), ("text", 1.15f) })
         {
             var cat = new Category();
@@ -36,7 +35,6 @@ public sealed class ProjectConfig
         int g = System.Convert.ToInt32(hex.Substring(3, 2), 16);
         int b = System.Convert.ToInt32(hex.Substring(5, 2), 16);
         return $"#{Clamp((int)(r * f)):X2}{Clamp((int)(g * f)):X2}{Clamp((int)(b * f)):X2}";
-
         static int Clamp(int v) => v > 255 ? 255 : v < 0 ? 0 : v;
     }
 }
@@ -47,8 +45,6 @@ public sealed class MinecraftSettings
     public string? Version { get; set; }
     public bool IncludeMods { get; set; } = true;
     public List<string> ExtraJars { get; set; } = new();
-
-    /// <summary>When set, this .jar is used instead of looking one up in <see cref="Dir"/>.</summary>
     public string? ClientJarOverride { get; set; }
 }
 
@@ -73,4 +69,10 @@ public sealed class BlockInfo
     public List<string> Flags { get; set; } = new();
     public string? Family { get; set; }
     public string? Color { get; set; }
+
+    /// <summary>Root parent model id, e.g. "minecraft:block/cross". null if unknown.</summary>
+    public string? RootParent { get; set; }
+
+    /// <summary>Mesh shape derived from RootParent: CubeAll / BottomTop / Column / Orientable / Cross / Flat.</summary>
+    public string ModelShape { get; set; } = "CubeAll";
 }

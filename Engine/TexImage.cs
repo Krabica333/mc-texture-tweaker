@@ -23,9 +23,14 @@ public sealed class TexImage
     {
         int w = bmp.PixelSize.Width;
         int h = bmp.PixelSize.Height;
+
+        // Minecraft animated textures are stored as a vertical strip:
+        //   width × (width × frameCount)
+        // Crop to the first frame so previews, tiles and exports all show a single tile.
+        if (h > w && h % w == 0) h = w;
+
         var img = new TexImage(w, h);
 
-        // Bitmap.CopyPixels needs a pinned buffer.
         var bytes = new byte[w * h * 4];
         unsafe
         {
@@ -35,7 +40,6 @@ public sealed class TexImage
             }
         }
 
-        // BGRA -> RGBA float
         Parallel.For(0, h, y =>
         {
             int rowOff = y * w * 4;
@@ -57,7 +61,6 @@ public sealed class TexImage
         var wb = new WriteableBitmap(new PixelSize(w, h), new Vector(96, 96),
                                      PixelFormat.Bgra8888, AlphaFormat.Premul);
 
-        // Pack RGBA float -> BGRA byte
         var bytes = new byte[w * h * 4];
         Parallel.For(0, h, y =>
         {
@@ -65,10 +68,10 @@ public sealed class TexImage
             for (int x = 0; x < w; x++)
             {
                 int i = rowOff + x * 4;
-                bytes[i + 0] = Clamp(Data[i + 2]); // B
-                bytes[i + 1] = Clamp(Data[i + 1]); // G
-                bytes[i + 2] = Clamp(Data[i + 0]); // R
-                bytes[i + 3] = Clamp(Data[i + 3]); // A
+                bytes[i + 0] = Clamp(Data[i + 2]);
+                bytes[i + 1] = Clamp(Data[i + 1]);
+                bytes[i + 2] = Clamp(Data[i + 0]);
+                bytes[i + 3] = Clamp(Data[i + 3]);
             }
         });
 
@@ -81,13 +84,7 @@ public sealed class TexImage
                     byte* dst = (byte*)fb.Address;
                     int rowBytes = fb.RowBytes;
                     for (int y = 0; y < h; y++)
-                    {
-                        Buffer.MemoryCopy(
-                            src + y * w * 4,
-                            dst + y * rowBytes,
-                            rowBytes,
-                            w * 4);
-                    }
+                        Buffer.MemoryCopy(src + y * w * 4, dst + y * rowBytes, rowBytes, w * 4);
                 }
             }
         }

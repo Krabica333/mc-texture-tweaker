@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextureTinter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e00e082d2219f6b040cb39057aefef43acf1da60")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+682dd33de3114b94c7eda7f1db93f71a82e19cd0")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextureTinter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextureTinter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

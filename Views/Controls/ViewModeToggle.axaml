@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TextureTinter.Views.Controls.ViewModeToggle"
+             x:Name="Root">
+
+  <Border Background="#1B1E22"
+          BorderBrush="#2B3036"
+          BorderThickness="1"
+          CornerRadius="8"
+          Padding="8,6">
+    <StackPanel Spacing="4">
+
+      <TextBlock Text="{Binding Label, ElementName=Root}"
+                 FontSize="11"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center"
+                 Foreground="{StaticResource TextPrimary}"/>
+
+      <Grid ColumnDefinitions="Auto,Auto,Auto" HorizontalAlignment="Center">
+
+        <!-- By-block icon: visible when By Block -->
+        <Image Grid.Column="0"
+               Source="avares://TextureTinter/Assets/byblock.png"
+               Width="22" Height="22"
+               Margin="0,0,6,0"
+               VerticalAlignment="Center"
+               IsVisible="{Binding !IsTextureMode, ElementName=Root}"
+               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+
+        <ToggleSwitch Grid.Column="1"
+                      IsChecked="{Binding IsTextureMode, ElementName=Root, Mode=TwoWay}"
+                      OnContent="" OffContent=""
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      MinWidth="0"/>
+
+        <!-- By-texture icon: visible when By Texture -->
+        <Image Grid.Column="2"
+               Source="avares://TextureTinter/Assets/bytexture.png"
+               Width="22" Height="22"
+               Margin="6,0,0,0"
+               VerticalAlignment="Center"
+               IsVisible="{Binding IsTextureMode, ElementName=Root}"
+               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+      </Grid>
+    </StackPanel>
+  </Border>
+</UserControl>

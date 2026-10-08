@@ -4,7 +4,8 @@
         xmlns:v="clr-namespace:TextureTinter.Views"
         x:Class="TextureTinter.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="Texture Tinter"
+        Title="McTextureTweaker"
+        Icon="/Assets/app.ico"
         Width="1500" Height="980"
         MinWidth="1100" MinHeight="720"
         WindowStartupLocation="CenterScreen">

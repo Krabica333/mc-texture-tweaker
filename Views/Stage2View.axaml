@@ -6,31 +6,163 @@
              x:Class="TextureTinter.Views.Stage2View"
              x:DataType="vm:MainViewModel">
 
-  <Grid ColumnDefinitions="180,200,180,*">
+  <UserControl.Styles>
+    <Style Selector="Button.groupHeader">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.groupHeader:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A3036"/>
+    </Style>
+    <Style Selector="Button.groupHeader.hasSelected /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1F3A2E"/>
+    </Style>
 
-    <!-- Col 0: Textures -->
+    <Style Selector="Button.textureChild">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="6,4"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.textureChild:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A3036"/>
+    </Style>
+    <Style Selector="Button.textureChild.selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.textureChild.selected">
+      <Setter Property="Foreground" Value="#0B1114"/>
+    </Style>
+
+    <Style Selector="Button.expander">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Width" Value="20"/>
+      <Setter Property="Height" Value="20"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="Button.expander:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A3036"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="240,200,180,*">
+
+    <!-- Col 0: Textures / Blocks -->
     <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
-      <Grid RowDefinitions="Auto,*">
+      <Grid RowDefinitions="Auto,Auto,*">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
           <TextBlock Grid.Column="0" Text="Textures" FontWeight="SemiBold" VerticalAlignment="Center"/>
           <Button Grid.Column="1" Content="+" Width="26" Padding="0"
                   Command="{Binding AddTextureFileCommand}"/>
         </Grid>
-        <ListBox Grid.Row="1" Margin="0,6,0,0"
+
+        <!-- Search + view switch -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+          <TextBox Grid.Column="0" Watermark="Search…"
+                   Text="{Binding TextureSearch, Mode=TwoWay}"
+                   VerticalAlignment="Center"/>
+          <ctl:ViewModeToggle Grid.Column="1" Margin="6,0,0,0"
+                              IsTextureMode="{Binding IsTextureMode, Mode=TwoWay}"
+                              ToolTip.Tip="Switch between grouped-by-block and flat texture lists"/>
+        </Grid>
+
+        <!-- Flat texture list -->
+        <ListBox Grid.Row="2" Margin="0,6,0,0"
+                 IsVisible="{Binding IsTextureMode}"
                  ItemsSource="{Binding TextureItems}"
                  SelectedItem="{Binding SelectedTextureItem, Mode=TwoWay}"
                  SelectionMode="Single">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:TextureItem">
-              <StackPanel Orientation="Horizontal" Spacing="6">
+              <StackPanel Orientation="Horizontal" Spacing="6"
+                          ToolTip.Tip="{Binding Name}">
                 <Image Source="{Binding Thumbnail}" Width="28" Height="28"
                        RenderOptions.BitmapInterpolationMode="None"/>
                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"/>
+                           TextTrimming="CharacterEllipsis" MaxWidth="150"/>
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+
+        <!-- Grouped block list -->
+        <ScrollViewer Grid.Row="2" Margin="0,6,0,0"
+                      IsVisible="{Binding !IsTextureMode}"
+                      HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding BlockGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BlockGroup">
+                <StackPanel Margin="0,1">
+
+                  <!-- Group header row -->
+                  <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Classes="expander"
+                            Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ToggleGroupCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="Expand / collapse">
+                      <Panel>
+                        <TextBlock Text="▼" FontSize="9"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   IsVisible="{Binding IsExpanded}"/>
+                        <TextBlock Text="▶" FontSize="9"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   IsVisible="{Binding !IsExpanded}"/>
+                      </Panel>
+                    </Button>
+
+                    <Button Grid.Column="1" Classes="groupHeader"
+                            Classes.hasSelected="{Binding IsSelected}"
+                            Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).SelectGroupCommand}"
+                            CommandParameter="{Binding}"
+                            ToolTip.Tip="{Binding Name}">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Image Source="{Binding RepresentativeThumbnail}"
+                               Width="26" Height="26"
+                               RenderOptions.BitmapInterpolationMode="None"
+                               VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+
+                  <!-- Child textures -->
+                  <ItemsControl ItemsSource="{Binding Items}"
+                                IsVisible="{Binding IsExpanded}"
+                                Margin="24,0,0,2">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:TextureItem">
+                        <Button Classes="textureChild"
+                                Classes.selected="{Binding IsSelected}"
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).SelectTextureItemCommand}"
+                                CommandParameter="{Binding}"
+                                ToolTip.Tip="{Binding Name}">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Image Source="{Binding Thumbnail}" Width="20" Height="20"
+                                   RenderOptions.BitmapInterpolationMode="None"
+                                   VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </Grid>
     </Border>
 
@@ -83,13 +215,22 @@
       <Grid Grid.Row="0" ColumnDefinitions="280,*">
         <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
           <Grid RowDefinitions="Auto,*">
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-              <TextBlock Grid.Column="0" Text="3D — drag to rotate" FontWeight="SemiBold" VerticalAlignment="Center"/>
-              <CheckBox Grid.Column="1" Content="Spin" IsChecked="{Binding AutoSpin, Mode=TwoWay}"/>
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
+              <TextBlock Grid.Column="0" Text="3D — drag / scroll"
+                         FontWeight="SemiBold" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis"/>
+              <CheckBox Grid.Column="1" Content="Spin"
+                        IsChecked="{Binding AutoSpin, Mode=TwoWay}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,10,0"/>
+              <CheckBox Grid.Column="2" Content="Original"
+                        IsChecked="{Binding ShowOriginal, Mode=TwoWay}"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="Show the un-recolored source textures"/>
             </Grid>
             <Border Grid.Row="1" Margin="0,6,0,0" CornerRadius="8"
                     ClipToBounds="True" Background="#0F1113">
-              <r:Preview3DControl Texture="{Binding Preview3DBitmap}"
+              <r:Preview3DControl TextureSet="{Binding Preview3DSet}"
                                   ModelKind="{Binding PreviewModelKind}"
                                   AutoSpin="{Binding AutoSpin}"/>
             </Border>
@@ -186,7 +327,7 @@
                     <ComboBoxItem>HSV match</ComboBoxItem>
                   </ComboBox>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0" Width="200">
+                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0" Width="220">
                   <TextBlock Text="Blend %" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                   <ctl:ParamSlider Label=""
                                    Minimum="0" Maximum="100" DefaultValue="50"
