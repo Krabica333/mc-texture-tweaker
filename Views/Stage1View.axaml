@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TextureTinter.ViewModels"
+             x:Class="TextureTinter.Views.Stage1View"
+             x:DataType="vm:MainViewModel">
+  <Grid RowDefinitions="Auto,Auto,*">
+
+    <Border Grid.Row="0" Classes="card" Margin="0,0,0,10">
+      <StackPanel Spacing="10">
+        <TextBlock Text="Minecraft source" FontWeight="SemiBold"/>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Browse folder…" Command="{Binding BrowseMinecraftFolderCommand}"/>
+          <Button Classes="accent" Content="Browse client jar…" Command="{Binding BrowseClientJarCommand}"/>
+          <Button Content="Auto-detect" Command="{Binding AutoDetectCommand}"/>
+          <TextBlock Text="{Binding MinecraftSummary}" VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Add mod jar(s)…" Command="{Binding AddExtraJarCommand}"/>
+          <Button Content="Clear extra jars" Command="{Binding ClearExtraJarsCommand}"/>
+          <TextBlock Text="{Binding ExtraJarsSummary}" VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondary}"/>
+          <CheckBox Content="Include mods folder" IsChecked="{Binding Config.Mc.IncludeMods, Mode=TwoWay}"/>
+          <Button Classes="accent" Content="Scan" Command="{Binding ScanCommand}"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1" Classes="card" Margin="0,0,0,10">
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBox Width="280" Watermark="Search blocks..." Text="{Binding Search, Mode=TwoWay}"/>
+        <ComboBox Width="240" ItemsSource="{Binding Namespaces}"
+                  SelectedItem="{Binding SelectedNamespace, Mode=TwoWay}"/>
+        <Button Content="Filter" Command="{Binding ApplyFilterCommand}"/>
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="2" Classes="card">
+      <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="40,280,260,*" Margin="0,0,0,6">
+          <TextBlock Grid.Column="1" Text="Block" FontWeight="SemiBold"
+                     Foreground="{StaticResource TextSecondary}"/>
+          <TextBlock Grid.Column="2" Text="Texture(s)" FontWeight="SemiBold"
+                     Foreground="{StaticResource TextSecondary}"/>
+          <TextBlock Grid.Column="3" Text="Notes" FontWeight="SemiBold"
+                     Foreground="{StaticResource TextSecondary}"/>
+        </Grid>
+
+        <ListBox Grid.Row="1" ItemsSource="{Binding FilteredBlocks}"
+                 SelectionMode="Multiple"
+                 SelectedItem="{Binding SelectedBlock, Mode=TwoWay}"
+                 SelectedItems="{Binding SelectedBlocks, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:BlockRow">
+              <Grid ColumnDefinitions="40,280,260,*">
+                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding Id}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding TextureNames}" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextSecondary}"/>
+                <TextBlock Grid.Column="3" Text="{Binding Notes}" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextSecondary}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+          <Button Classes="accent" Content="Add checked block(s)"
+                  Command="{Binding AddSelectedBlocksCommand}"/>
+          <Button Content="Check all shown" Command="{Binding SelectAllShownCommand}"/>
+          <Button Content="Uncheck all" Command="{Binding DeselectAllCommand}"/>
+          <TextBlock Text="Tip: tick boxes to keep blocks selected, or Ctrl/Shift-click rows."
+                     VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondary}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

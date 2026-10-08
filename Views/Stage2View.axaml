@@ -1,0 +1,358 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TextureTinter.ViewModels"
+             xmlns:r="clr-namespace:TextureTinter.Rendering"
+             x:Class="TextureTinter.Views.Stage2View"
+             x:DataType="vm:MainViewModel">
+
+  <Grid ColumnDefinitions="180,200,180,*">
+
+    <!-- Col 0: Textures -->
+    <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
+      <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+          <TextBlock Grid.Column="0" Text="Textures" FontWeight="SemiBold" VerticalAlignment="Center"/>
+          <Button Grid.Column="1" Content="+" Width="26" Padding="0"
+                  Command="{Binding AddTextureFileCommand}"/>
+        </Grid>
+        <ListBox Grid.Row="1" Margin="0,6,0,0"
+                 ItemsSource="{Binding TextureItems}"
+                 SelectedItem="{Binding SelectedTextureItem, Mode=TwoWay}"
+                 SelectionMode="Single">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:TextureItem">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Image Source="{Binding Thumbnail}" Width="28" Height="28"
+                       RenderOptions.BitmapInterpolationMode="None"/>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <!-- Col 1: Dyes -->
+    <Border Grid.Column="1" Classes="card" Margin="0,0,8,0">
+      <Grid RowDefinitions="Auto,*">
+        <TextBlock Grid.Row="0" Text="Dyes" FontWeight="SemiBold"/>
+        <ListBox Grid.Row="1" Margin="0,6,0,0"
+                 ItemsSource="{Binding DyeItems}"
+                 SelectedItem="{Binding SelectedDyeItem, Mode=TwoWay}"
+                 SelectionMode="Single">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:DyeItem">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
+                        CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
+                <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
+                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <!-- Col 2: Colors -->
+    <Border Grid.Column="2" Classes="card" Margin="0,0,8,0">
+      <Grid RowDefinitions="Auto,*">
+        <TextBlock Grid.Row="0" Text="Colors" FontWeight="SemiBold"/>
+        <ListBox Grid.Row="1" Margin="0,6,0,0" ItemsSource="{Binding CategoryItems}" SelectionMode="Single">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:CategoryItem">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
+                        CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
+                <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
+                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <!-- Col 3: Main panel -->
+    <Grid Grid.Column="3" RowDefinitions="300,Auto,*">
+
+      <Grid Grid.Row="0" ColumnDefinitions="280,*">
+        <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
+          <Grid RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Text="3D — drag to rotate" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <CheckBox Grid.Column="1" Content="Spin" IsChecked="{Binding AutoSpin, Mode=TwoWay}"/>
+            </Grid>
+            <Border Grid.Row="1" Margin="0,6,0,0" CornerRadius="8"
+                    ClipToBounds="True" Background="#0F1113">
+              <r:Preview3DControl Texture="{Binding Preview3DBitmap}"
+                                  ModelKind="{Binding PreviewModelKind}"
+                                  AutoSpin="{Binding AutoSpin}"/>
+            </Border>
+          </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Classes="card">
+          <Grid RowDefinitions="Auto,*">
+            <TextBlock Grid.Row="0" Text="Dye previews — click to select" FontWeight="SemiBold"/>
+            <ScrollViewer Grid.Row="1" Margin="0,6,0,0" HorizontalScrollBarVisibility="Disabled">
+              <ListBox ItemsSource="{Binding PreviewTiles}"
+                       SelectedItem="{Binding SelectedPreviewTile, Mode=TwoWay}"
+                       SelectionMode="Single">
+                <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PreviewTile">
+                    <StackPanel Width="56" Margin="2">
+                      <Image Source="{Binding Image}" Width="48" Height="48"
+                             RenderOptions.BitmapInterpolationMode="None"
+                             HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding DyeName}" HorizontalAlignment="Center" FontSize="9"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </ScrollViewer>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="1" Classes="card" Padding="12,8" Margin="0,8,0,0">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+          <TextBlock Grid.Column="0" Text="Category:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding CategoryNames}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Content="{Binding}" Margin="0,0,4,0" Padding="10,4"
+                        Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).SetCategoryCommand}"
+                        CommandParameter="{Binding}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Grid.Column="2" Text="Exception:" VerticalAlignment="Center" Margin="16,0,8,0"/>
+          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4">
+            <ItemsControl ItemsSource="{Binding ExceptionTabs}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Content="{Binding}" Margin="0,0,4,0" Padding="10,4"
+                          Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).SelectTabCommand}"
+                          CommandParameter="{Binding}"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="+" Width="28" Padding="0"
+                    Command="{Binding AddExceptionCommand}"
+                    IsEnabled="{Binding CanAddException}"/>
+            <Button Content="×" Width="28" Padding="0"
+                    Command="{Binding DeleteExceptionCommand}"
+                    IsVisible="{Binding IsInExceptionTab}"/>
+            <Button Content="⟲" Width="28" Padding="0"
+                    Command="{Binding ResetExceptionCommand}"
+                    IsVisible="{Binding IsInExceptionTab}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Grid.Row="2" Classes="card" Padding="12,6" Margin="0,8,0,0">
+        <TabControl>
+          <TabItem Header="Recoloring">
+            <Grid RowDefinitions="Auto,*" Margin="0,8,0,0">
+              <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="Method 1" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                  <ComboBox x:Name="MethodCombo" HorizontalAlignment="Stretch"
+                            SelectionChanged="OnMethodChanged">
+                    <ComboBoxItem>Average match + compensation</ComboBoxItem>
+                    <ComboBoxItem>Classic multiply</ComboBoxItem>
+                    <ComboBoxItem>Perceptual (OKLab)</ComboBoxItem>
+                    <ComboBoxItem>Pick-a-pixel</ComboBoxItem>
+                    <ComboBoxItem>HSV match</ComboBoxItem>
+                  </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0" Width="160">
+                  <TextBlock Text="Blend %" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                  <Slider Minimum="0" Maximum="100"
+                          Value="{Binding CurrentProfile.BlendPct, Mode=TwoWay}"
+                          IsEnabled="{Binding Method2Visible}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="2">
+                  <TextBlock Text="Method 2 (optional)" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                  <ComboBox x:Name="Method2Combo" HorizontalAlignment="Stretch"
+                            SelectionChanged="OnMethod2Changed">
+                    <ComboBoxItem>(none)</ComboBoxItem>
+                    <ComboBoxItem>Average match + compensation</ComboBoxItem>
+                    <ComboBoxItem>Classic multiply</ComboBoxItem>
+                    <ComboBoxItem>Perceptual (OKLab)</ComboBoxItem>
+                    <ComboBoxItem>Pick-a-pixel</ComboBoxItem>
+                    <ComboBoxItem>HSV match</ComboBoxItem>
+                  </ComboBox>
+                </StackPanel>
+              </Grid>
+
+              <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="0,8,0,0">
+                <Border Grid.Column="0" Background="#17191C" CornerRadius="8" Padding="10" Margin="0,0,4,0">
+                  <ScrollViewer>
+                    <StackPanel>
+                      <TextBlock Text="Method 1 settings" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
+                      <StackPanel x:Name="M1_Tint">
+                        <TextBlock Text="Tint shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Tint, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_Sat">
+                        <TextBlock Text="Saturation shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Sat, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_ShadingGain">
+                        <TextBlock Text="Shading strength" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="2" Value="{Binding CurrentProfile.ShadingGain, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_FlattenHue">
+                        <TextBlock Text="Flatten hue" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenHue, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_FlattenSat">
+                        <TextBlock Text="Flatten saturation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenSat, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_FlattenVal">
+                        <TextBlock Text="Flatten value" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenVal, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_HueSplit">
+                        <TextBlock Text="Hue split (shadow/light)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="-40" Maximum="40" Value="{Binding CurrentProfile.HueSplit, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_ShadowSat">
+                        <TextBlock Text="Shadow saturation boost" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ShadowSat, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_ExtremeComp">
+                        <TextBlock Text="Extreme-color compensation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ExtremeComp, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_BrightShadowDark">
+                        <TextBlock Text="Bright-color shadow darkening" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.BrightShadowDark, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M1_Tolerance">
+                        <TextBlock Text="Tolerance %" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.Tolerance, Mode=TwoWay}"/>
+                      </StackPanel>
+                    </StackPanel>
+                  </ScrollViewer>
+                </Border>
+
+                <Border Grid.Column="1" Background="#17191C" CornerRadius="8" Padding="10" Margin="4,0,0,0"
+                        IsVisible="{Binding Method2Visible}">
+                  <ScrollViewer>
+                    <StackPanel>
+                      <TextBlock Text="Method 2 settings" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
+                      <StackPanel x:Name="M2_Tint">
+                        <TextBlock Text="Tint shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Tint2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_Sat">
+                        <TextBlock Text="Saturation shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Sat2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_ShadingGain">
+                        <TextBlock Text="Shading strength" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="2" Value="{Binding CurrentProfile.ShadingGain2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_FlattenHue">
+                        <TextBlock Text="Flatten hue" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenHue2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_FlattenSat">
+                        <TextBlock Text="Flatten saturation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenSat2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_FlattenVal">
+                        <TextBlock Text="Flatten value" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenVal2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_HueSplit">
+                        <TextBlock Text="Hue split (shadow/light)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="-40" Maximum="40" Value="{Binding CurrentProfile.HueSplit2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_ShadowSat">
+                        <TextBlock Text="Shadow saturation boost" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ShadowSat2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_ExtremeComp">
+                        <TextBlock Text="Extreme-color compensation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ExtremeComp2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_BrightShadowDark">
+                        <TextBlock Text="Bright-color shadow darkening" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.BrightShadowDark2, Mode=TwoWay}"/>
+                      </StackPanel>
+                      <StackPanel x:Name="M2_Tolerance">
+                        <TextBlock Text="Tolerance %" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.Tolerance2, Mode=TwoWay}"/>
+                      </StackPanel>
+                    </StackPanel>
+                  </ScrollViewer>
+                </Border>
+              </Grid>
+            </Grid>
+          </TabItem>
+
+          <TabItem Header="Adjustments">
+            <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+              <!-- DataContext = CurrentProfile.Pre → sliders bind to single-segment paths -->
+              <Border Grid.Column="0" Background="#17191C" CornerRadius="8" Padding="10" Margin="0,0,4,0"
+                      DataContext="{Binding CurrentProfile.Pre}">
+                <ScrollViewer>
+                  <StackPanel>
+                    <TextBlock Text="Base adjustments (before)" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
+                    <TextBlock Text="Brightness" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Brightness, Mode=TwoWay}"/>
+                    <TextBlock Text="Contrast" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="0.2" Maximum="3" Value="{Binding Contrast, Mode=TwoWay}"/>
+                    <TextBlock Text="Vibrance" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Vibrance, Mode=TwoWay}"/>
+                    <TextBlock Text="Clarity" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Clarity, Mode=TwoWay}"/>
+                    <TextBlock Text="Hue shift (deg)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-180" Maximum="180" Value="{Binding HueShift, Mode=TwoWay}"/>
+                  </StackPanel>
+                </ScrollViewer>
+              </Border>
+
+              <Border Grid.Column="1" Background="#17191C" CornerRadius="8" Padding="10" Margin="4,0,0,0"
+                      DataContext="{Binding CurrentProfile.Post}">
+                <ScrollViewer>
+                  <StackPanel>
+                    <TextBlock Text="Final adjustments (after)" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
+                    <TextBlock Text="Brightness" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Brightness, Mode=TwoWay}"/>
+                    <TextBlock Text="Contrast" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="0.2" Maximum="3" Value="{Binding Contrast, Mode=TwoWay}"/>
+                    <TextBlock Text="Vibrance" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Vibrance, Mode=TwoWay}"/>
+                    <TextBlock Text="Clarity" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-100" Maximum="100" Value="{Binding Clarity, Mode=TwoWay}"/>
+                    <TextBlock Text="Hue shift (deg)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                    <Slider Minimum="-180" Maximum="180" Value="{Binding HueShift, Mode=TwoWay}"/>
+                  </StackPanel>
+                </ScrollViewer>
+              </Border>
+            </Grid>
+          </TabItem>
+        </TabControl>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

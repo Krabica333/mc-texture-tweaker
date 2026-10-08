@@ -1,0 +1,81 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TextureTinter.ViewModels"
+        xmlns:v="clr-namespace:TextureTinter.Views"
+        x:Class="TextureTinter.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Texture Tinter"
+        Width="1500" Height="980"
+        MinWidth="1100" MinHeight="720"
+        WindowStartupLocation="CenterScreen">
+
+  <Grid>
+    <!-- Main content -->
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18"
+          IsVisible="{Binding !ShowProjectChooser}">
+
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,14">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Button Content="Projects…" Command="{Binding ShowProjectChooserDialogCommand}"/>
+          <TextBlock Text="{Binding ProjectName}" VerticalAlignment="Center"
+                     FontWeight="SemiBold"
+                     Foreground="{StaticResource TextPrimary}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+          <Button Classes="nav" Content="1   Collect blocks"
+                  Command="{Binding SetStageCommand}" CommandParameter="1"/>
+          <Button Classes="nav" Content="2   Recolor &amp; Preview"
+                  Command="{Binding SetStageCommand}" CommandParameter="2"/>
+          <Button Classes="nav" Content="3   Export"
+                  Command="{Binding SetStageCommand}" CommandParameter="3"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+          <Button Content="Save" Command="{Binding SaveCommand}"/>
+        </StackPanel>
+      </Grid>
+
+      <Grid Grid.Row="1">
+        <v:Stage1View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsOne}}"/>
+        <v:Stage2View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsTwo}}"/>
+        <v:Stage3View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsThree}}"/>
+      </Grid>
+
+      <Border Grid.Row="2" Classes="card" Padding="14,8" Margin="0,14,0,0">
+        <TextBlock Text="{Binding Status}" Foreground="{StaticResource TextSecondary}"/>
+      </Border>
+    </Grid>
+
+    <!-- Project chooser overlay -->
+    <Grid IsVisible="{Binding ShowProjectChooser}" Background="#E5000000">
+      <Border Classes="card" Width="520" Padding="24"
+              HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Select a project" FontSize="20" FontWeight="Bold"/>
+          <TextBlock Text="Dyes, categories, blocks, textures, settings and the export folder are saved per project."
+                     Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"/>
+
+          <ListBox Height="260"
+                   ItemsSource="{Binding ProjectEntries}"
+                   SelectedItem="{Binding SelectedProjectEntry, Mode=TwoWay}"
+                   SelectionMode="Single">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ProjectEntry">
+                <TextBlock Text="{Binding Display}"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="accent" Content="Open" Command="{Binding OpenSelectedProjectCommand}"/>
+            <Button Content="New project…" Command="{Binding NewProjectCommand}"/>
+            <Button Content="Delete" Command="{Binding DeleteSelectedProjectCommand}"/>
+            <Button Content="Cancel" Command="{Binding CloseProjectChooserCommand}"
+                    IsVisible="{Binding ProjectName, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

@@ -1,0 +1,101 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <Color x:Key="AccentColor">#00BB77</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#00BB77"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#00D188"/>
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#00A368"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#1F2226"/>
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#2B3036"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="#17191C"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#14161A"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#E9EDF0"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#96A0A8"/>
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+    <Setter Property="FontFamily" Value="Inter, Segoe UI, sans-serif"/>
+  </Style>
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="12"/>
+    <Setter Property="Padding" Value="18"/>
+  </Style>
+
+  <Style Selector="Button">
+    <Setter Property="Background" Value="#23272C"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="14,8"/>
+    <Setter Property="CornerRadius" Value="8"/>
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#2A2F35"/>
+  </Style>
+
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    <Setter Property="Foreground" Value="#0B1114"/>
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+  </Style>
+  <Style Selector="Button.accent:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentPressedBrush}"/>
+  </Style>
+
+  <Style Selector="Button.nav">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+    <Setter Property="Padding" Value="18,10"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.nav.active /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+  </Style>
+  <Style Selector="Button.nav.active">
+    <Setter Property="Foreground" Value="#0B1114"/>
+  </Style>
+
+  <!-- ListBoxItem selection: highly visible jade highlight -->
+  <Style Selector="ListBoxItem">
+    <Setter Property="Padding" Value="10,8"/>
+    <Setter Property="Margin" Value="0,1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+  </Style>
+  <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#2A3036"/>
+  </Style>
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+  </Style>
+  <Style Selector="ListBoxItem:selected">
+    <Setter Property="Foreground" Value="#0B1114"/>
+  </Style>
+  <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+  </Style>
+
+  <Style Selector="Slider /template/ Thumb">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="#1B1E22"/>
+    <Setter Property="BorderBrush" Value="#2B3036"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="10,7"/>
+  </Style>
+
+  <Style Selector="TabControl">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+</Styles>
