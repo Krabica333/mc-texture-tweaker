@@ -186,7 +186,10 @@ Portable single-file and installer builds
 ---
 
 ## License
-https://github.com/Krabica333/mc-texture-tweaker/blob/main/LICENSE
+***GNU GPLv3***
+https://www.gnu.org/licenses/gpl-3.0.en.html
+
+---
 
 ***Minecraft is a trademark of Mojang Studios / Microsoft. McTextureTweaker or KrabicaDev is not affiliated with, endorsed by, or sponsored by Mojang or Microsoft.***
 
