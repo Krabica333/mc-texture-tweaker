@@ -73,22 +73,6 @@ It works offline, without touching Minecraft's install, and without needing Phot
 
 ---
 
-## Installation
-
-~~ ### Option A — Installer (recommended)
-
-1. Download `McTextureTweaker-Setup-x.y.z.exe` from the [Releases](../../releases) page.
-2. Run it. Follow the wizard.
-3. Launch **McTextureTweaker** from the Start Menu or desktop shortcut.
-
-No admin rights required. Uninstall via Windows Settings → Apps. ~~
-
-### Option B — Portable
-
-1. Download `McTextureTweaker.exe` (single-file, self-contained) from [Releases](../../releases).
-2. Put it anywhere — USB stick, desktop, `C:\Tools\`.
-3. Double-click. Done.
-
 ### Requirements
 
 - **Windows 10 / 11** (x64)
@@ -176,6 +160,8 @@ dotnet run
 4. No resource pack zip export yet — the exporter writes PNGs, not a packaged .zip with pack.mcmeta / blockstates / models. Coming in a future release.
 5. No auto-update — you'll need to download a new release manually. (I'll add that in future)
 
+---
+
 ## Credits
 
 Author: KrabicaDev
@@ -183,6 +169,8 @@ UI framework: Avalonia
 Icons and inspiration: Mojang's Minecraft assets (used only for reading, never redistributed)
 Color math: Björn Ottosson's OKLab — used under public domain
 Original Python prototype: this project began as a Python script called texture_tinter.py by **Tomeshec**
+
+---
 
 Changelog
 v1.0.0 — Initial release
@@ -194,6 +182,7 @@ Multi-project support with atomic saves
 Mod jar scanning with jar-in-jar support
 Portable single-file and installer builds
 
+---
 
 ## License
 MIT License
@@ -218,4 +207,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Minecraft is a trademark of Mojang Studios / Microsoft. This tool is not affiliated with, endorsed by, or sponsored by Mojang or Microsoft.
+***Minecraft is a trademark of Mojang Studios / Microsoft. McTextureTweaker or KrabicaDev is not affiliated with, endorsed by, or sponsored by Mojang or Microsoft.***
