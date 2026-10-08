@@ -208,5 +208,8 @@ SOFTWARE.
 ***Minecraft is a trademark of Mojang Studios / Microsoft. McTextureTweaker or KrabicaDev is not affiliated with, endorsed by, or sponsored by Mojang or Microsoft.***
 
 With <3 KrabicaDev
+
+---
+
 <img width="281" height="351" alt="Lovely_NoBG" src="https://github.com/user-attachments/assets/36d0195e-aa6a-419a-b1f7-16d89f2f213f" />
 
