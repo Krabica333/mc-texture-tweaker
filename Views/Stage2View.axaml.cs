@@ -116,22 +116,22 @@ public partial class Stage2View : UserControl
     }
 
     void UpdateSliderVisibility()
+{
+    var p = _vm?.CurrentProfile;
+    if (p is null) return;
+
+    var used1 = Uses.TryGetValue(p.Method, out var u1) ? u1 : new HashSet<string>();
+    var used2 = p.Method2.HasValue && Uses.TryGetValue(p.Method2.Value, out var u2)
+        ? u2
+        : new HashSet<string>();
+
+    foreach (var panel in this.GetVisualDescendants().OfType<Control>())
     {
-        var p = _vm?.CurrentProfile;
-        if (p is null) return;
-
-        var used1 = Uses.TryGetValue(p.Method, out var u1) ? u1 : new HashSet<string>();
-        var used2 = p.Method2.HasValue && Uses.TryGetValue(p.Method2.Value, out var u2)
-            ? u2
-            : new HashSet<string>();
-
-        foreach (var panel in this.GetVisualDescendants().OfType<StackPanel>())
-        {
-            if (panel.Name is null) continue;
-            if (panel.Name.StartsWith("M1_"))
-                panel.IsVisible = used1.Contains(panel.Name.Substring(3));
-            else if (panel.Name.StartsWith("M2_"))
-                panel.IsVisible = used2.Contains(panel.Name.Substring(3));
-        }
+        if (panel.Name is null) continue;
+        if (panel.Name.StartsWith("M1_"))
+            panel.IsVisible = used1.Contains(panel.Name.Substring(3));
+        else if (panel.Name.StartsWith("M2_"))
+            panel.IsVisible = used2.Contains(panel.Name.Substring(3));
     }
+}
 }

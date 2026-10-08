@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:TextureTinter.ViewModels"
              xmlns:r="clr-namespace:TextureTinter.Rendering"
+             xmlns:ctl="clr-namespace:TextureTinter.Views.Controls"
              x:Class="TextureTinter.Views.Stage2View"
              x:DataType="vm:MainViewModel">
 
@@ -160,6 +161,11 @@
             <Button Content="⟲" Width="28" Padding="0"
                     Command="{Binding ResetExceptionCommand}"
                     IsVisible="{Binding IsInExceptionTab}"/>
+            <Button Content="↺ Reset all sliders"
+                    Padding="10,4"
+                    Margin="12,0,0,0"
+                    Classes="accent"
+                    Command="{Binding ResetProfileToDefaultsCommand}"/>
           </StackPanel>
         </Grid>
       </Border>
@@ -180,11 +186,13 @@
                     <ComboBoxItem>HSV match</ComboBoxItem>
                   </ComboBox>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0" Width="160">
+                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0" Width="200">
                   <TextBlock Text="Blend %" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                  <Slider Minimum="0" Maximum="100"
-                          Value="{Binding CurrentProfile.BlendPct, Mode=TwoWay}"
-                          IsEnabled="{Binding Method2Visible}"/>
+                  <ctl:ParamSlider Label=""
+                                   Minimum="0" Maximum="100" DefaultValue="50"
+                                   LabelWidth="0"
+                                   Value="{Binding CurrentProfile.BlendPct, Mode=TwoWay}"
+                                   IsEnabled="{Binding Method2Visible}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Spacing="2">
                   <TextBlock Text="Method 2 (optional)" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
@@ -203,52 +211,30 @@
               <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="0,8,0,0">
                 <Border Grid.Column="0" Background="#17191C" CornerRadius="8" Padding="10" Margin="0,0,4,0">
                   <ScrollViewer>
-                    <StackPanel>
+                    <StackPanel Spacing="2">
                       <TextBlock Text="Method 1 settings" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
-                      <StackPanel x:Name="M1_Tint">
-                        <TextBlock Text="Tint shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Tint, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_Sat">
-                        <TextBlock Text="Saturation shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Sat, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_ShadingGain">
-                        <TextBlock Text="Shading strength" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="2" Value="{Binding CurrentProfile.ShadingGain, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_FlattenHue">
-                        <TextBlock Text="Flatten hue" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenHue, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_FlattenSat">
-                        <TextBlock Text="Flatten saturation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenSat, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_FlattenVal">
-                        <TextBlock Text="Flatten value" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenVal, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_HueSplit">
-                        <TextBlock Text="Hue split (shadow/light)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="-40" Maximum="40" Value="{Binding CurrentProfile.HueSplit, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_ShadowSat">
-                        <TextBlock Text="Shadow saturation boost" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ShadowSat, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_ExtremeComp">
-                        <TextBlock Text="Extreme-color compensation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ExtremeComp, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_BrightShadowDark">
-                        <TextBlock Text="Bright-color shadow darkening" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.BrightShadowDark, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M1_Tolerance">
-                        <TextBlock Text="Tolerance %" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.Tolerance, Mode=TwoWay}"/>
-                      </StackPanel>
+                      <ctl:ParamSlider x:Name="M1_Tint" Label="Tint shading" Minimum="0" Maximum="1.5" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.Tint, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_Sat" Label="Saturation shading" Minimum="0" Maximum="1.5" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.Sat, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_ShadingGain" Label="Shading strength" Minimum="0" Maximum="2" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.ShadingGain, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_FlattenHue" Label="Flatten hue" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenHue, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_FlattenSat" Label="Flatten saturation" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenSat, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_FlattenVal" Label="Flatten value" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenVal, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_HueSplit" Label="Hue split (shadow/light)" Minimum="-40" Maximum="40" DefaultValue="6"
+                                       Value="{Binding CurrentProfile.HueSplit, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_ShadowSat" Label="Shadow saturation boost" Minimum="0" Maximum="100" DefaultValue="25"
+                                       Value="{Binding CurrentProfile.ShadowSat, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_ExtremeComp" Label="Extreme-color compensation" Minimum="0" Maximum="100" DefaultValue="40"
+                                       Value="{Binding CurrentProfile.ExtremeComp, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_BrightShadowDark" Label="Bright-color shadow darkening" Minimum="0" Maximum="100" DefaultValue="30"
+                                       Value="{Binding CurrentProfile.BrightShadowDark, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M1_Tolerance" Label="Tolerance %" Minimum="0" Maximum="100" DefaultValue="100"
+                                       Value="{Binding CurrentProfile.Tolerance, Mode=TwoWay}"/>
                     </StackPanel>
                   </ScrollViewer>
                 </Border>
@@ -256,52 +242,30 @@
                 <Border Grid.Column="1" Background="#17191C" CornerRadius="8" Padding="10" Margin="4,0,0,0"
                         IsVisible="{Binding Method2Visible}">
                   <ScrollViewer>
-                    <StackPanel>
+                    <StackPanel Spacing="2">
                       <TextBlock Text="Method 2 settings" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
-                      <StackPanel x:Name="M2_Tint">
-                        <TextBlock Text="Tint shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Tint2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_Sat">
-                        <TextBlock Text="Saturation shading" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="1.5" Value="{Binding CurrentProfile.Sat2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_ShadingGain">
-                        <TextBlock Text="Shading strength" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="2" Value="{Binding CurrentProfile.ShadingGain2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_FlattenHue">
-                        <TextBlock Text="Flatten hue" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenHue2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_FlattenSat">
-                        <TextBlock Text="Flatten saturation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenSat2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_FlattenVal">
-                        <TextBlock Text="Flatten value" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.FlattenVal2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_HueSplit">
-                        <TextBlock Text="Hue split (shadow/light)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="-40" Maximum="40" Value="{Binding CurrentProfile.HueSplit2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_ShadowSat">
-                        <TextBlock Text="Shadow saturation boost" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ShadowSat2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_ExtremeComp">
-                        <TextBlock Text="Extreme-color compensation" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.ExtremeComp2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_BrightShadowDark">
-                        <TextBlock Text="Bright-color shadow darkening" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.BrightShadowDark2, Mode=TwoWay}"/>
-                      </StackPanel>
-                      <StackPanel x:Name="M2_Tolerance">
-                        <TextBlock Text="Tolerance %" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding CurrentProfile.Tolerance2, Mode=TwoWay}"/>
-                      </StackPanel>
+                      <ctl:ParamSlider x:Name="M2_Tint" Label="Tint shading" Minimum="0" Maximum="1.5" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.Tint2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_Sat" Label="Saturation shading" Minimum="0" Maximum="1.5" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.Sat2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_ShadingGain" Label="Shading strength" Minimum="0" Maximum="2" DefaultValue="1"
+                                       Value="{Binding CurrentProfile.ShadingGain2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_FlattenHue" Label="Flatten hue" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenHue2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_FlattenSat" Label="Flatten saturation" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenSat2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_FlattenVal" Label="Flatten value" Minimum="0" Maximum="100" DefaultValue="0"
+                                       Value="{Binding CurrentProfile.FlattenVal2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_HueSplit" Label="Hue split (shadow/light)" Minimum="-40" Maximum="40" DefaultValue="6"
+                                       Value="{Binding CurrentProfile.HueSplit2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_ShadowSat" Label="Shadow saturation boost" Minimum="0" Maximum="100" DefaultValue="25"
+                                       Value="{Binding CurrentProfile.ShadowSat2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_ExtremeComp" Label="Extreme-color compensation" Minimum="0" Maximum="100" DefaultValue="40"
+                                       Value="{Binding CurrentProfile.ExtremeComp2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_BrightShadowDark" Label="Bright-color shadow darkening" Minimum="0" Maximum="100" DefaultValue="30"
+                                       Value="{Binding CurrentProfile.BrightShadowDark2, Mode=TwoWay}"/>
+                      <ctl:ParamSlider x:Name="M2_Tolerance" Label="Tolerance %" Minimum="0" Maximum="100" DefaultValue="100"
+                                       Value="{Binding CurrentProfile.Tolerance2, Mode=TwoWay}"/>
                     </StackPanel>
                   </ScrollViewer>
                 </Border>
@@ -311,22 +275,21 @@
 
           <TabItem Header="Adjustments">
             <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
-              <!-- DataContext = CurrentProfile.Pre → sliders bind to single-segment paths -->
               <Border Grid.Column="0" Background="#17191C" CornerRadius="8" Padding="10" Margin="0,0,4,0"
                       DataContext="{Binding CurrentProfile.Pre}">
                 <ScrollViewer>
-                  <StackPanel>
+                  <StackPanel Spacing="2">
                     <TextBlock Text="Base adjustments (before)" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
-                    <TextBlock Text="Brightness" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Brightness, Mode=TwoWay}"/>
-                    <TextBlock Text="Contrast" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="0.2" Maximum="3" Value="{Binding Contrast, Mode=TwoWay}"/>
-                    <TextBlock Text="Vibrance" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Vibrance, Mode=TwoWay}"/>
-                    <TextBlock Text="Clarity" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Clarity, Mode=TwoWay}"/>
-                    <TextBlock Text="Hue shift (deg)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-180" Maximum="180" Value="{Binding HueShift, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Brightness" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Brightness, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Contrast" Minimum="0.2" Maximum="3" DefaultValue="1"
+                                     Value="{Binding Contrast, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Vibrance" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Vibrance, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Clarity" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Clarity, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Hue shift (deg)" Minimum="-180" Maximum="180" DefaultValue="0"
+                                     Value="{Binding HueShift, Mode=TwoWay}"/>
                   </StackPanel>
                 </ScrollViewer>
               </Border>
@@ -334,18 +297,18 @@
               <Border Grid.Column="1" Background="#17191C" CornerRadius="8" Padding="10" Margin="4,0,0,0"
                       DataContext="{Binding CurrentProfile.Post}">
                 <ScrollViewer>
-                  <StackPanel>
+                  <StackPanel Spacing="2">
                     <TextBlock Text="Final adjustments (after)" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="11"/>
-                    <TextBlock Text="Brightness" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Brightness, Mode=TwoWay}"/>
-                    <TextBlock Text="Contrast" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="0.2" Maximum="3" Value="{Binding Contrast, Mode=TwoWay}"/>
-                    <TextBlock Text="Vibrance" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Vibrance, Mode=TwoWay}"/>
-                    <TextBlock Text="Clarity" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-100" Maximum="100" Value="{Binding Clarity, Mode=TwoWay}"/>
-                    <TextBlock Text="Hue shift (deg)" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
-                    <Slider Minimum="-180" Maximum="180" Value="{Binding HueShift, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Brightness" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Brightness, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Contrast" Minimum="0.2" Maximum="3" DefaultValue="1"
+                                     Value="{Binding Contrast, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Vibrance" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Vibrance, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Clarity" Minimum="-100" Maximum="100" DefaultValue="0"
+                                     Value="{Binding Clarity, Mode=TwoWay}"/>
+                    <ctl:ParamSlider Label="Hue shift (deg)" Minimum="-180" Maximum="180" DefaultValue="0"
+                                     Value="{Binding HueShift, Mode=TwoWay}"/>
                   </StackPanel>
                 </ScrollViewer>
               </Border>

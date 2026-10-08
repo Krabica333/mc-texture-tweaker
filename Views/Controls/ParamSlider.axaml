@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TextureTinter.Views.Controls.ParamSlider"
+             x:Name="Root">
+  <Grid ColumnDefinitions="Auto,*,48,Auto">
+    <TextBlock Grid.Column="0"
+               Text="{Binding Label, ElementName=Root}"
+               FontSize="10"
+               Foreground="{StaticResource TextSecondary}"
+               VerticalAlignment="Center"
+               MinWidth="{Binding LabelWidth, ElementName=Root}"
+               Margin="0,0,8,0"
+               TextTrimming="CharacterEllipsis"/>
+    <Slider Grid.Column="1"
+            Minimum="{Binding Minimum, ElementName=Root}"
+            Maximum="{Binding Maximum, ElementName=Root}"
+            Value="{Binding Value, ElementName=Root, Mode=TwoWay}"
+            VerticalAlignment="Center"/>
+    <TextBlock Grid.Column="2"
+               Text="{Binding Value, ElementName=Root, StringFormat={}{0:0.00}}"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Right"
+               FontFamily="Consolas,Menlo,monospace"
+               FontSize="11"
+               Foreground="{StaticResource TextPrimary}"/>
+    <Button Grid.Column="3"
+            Content="↺"
+            Width="22" Height="22"
+            Padding="0"
+            FontSize="11"
+            Margin="6,0,0,0"
+            VerticalAlignment="Center"
+            CornerRadius="4"
+            Background="#2A2F35"
+            Foreground="#96A0A8"
+            Click="OnResetClicked"
+            ToolTip.Tip="Reset this slider to its default"/>
+  </Grid>
+</UserControl>

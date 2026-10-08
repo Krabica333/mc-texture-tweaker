@@ -1441,11 +1441,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Seb\\Desktop\\TextureTinter\\TextureTinter.csproj",
+      "projectUniqueName": "X:\\VERMINANDCO\\minecraft-texture-tinter\\TextureTinter.csproj",
       "projectName": "TextureTinter",
-      "projectPath": "C:\\Users\\Seb\\Desktop\\TextureTinter\\TextureTinter.csproj",
+      "projectPath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\TextureTinter.csproj",
       "packagesPath": "C:\\Users\\Seb\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Seb\\Desktop\\TextureTinter\\obj\\",
+      "outputPath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Seb\\AppData\\Roaming\\NuGet\\NuGet.Config"

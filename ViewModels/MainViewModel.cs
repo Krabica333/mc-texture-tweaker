@@ -123,10 +123,8 @@ public partial class MainViewModel : ObservableObject
 
     void OnProfileChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Real-time: render the 3D preview immediately.
         RebuildPreview();
 
-        // Debounced: the 16-tile grid and the JSON save only fire after the user stops dragging.
         EnsureThrottles();
         _tilesThrottle!.Stop(); _tilesThrottle.Start();
         _saveThrottle!.Stop(); _saveThrottle.Start();
@@ -376,6 +374,40 @@ public partial class MainViewModel : ObservableObject
         Status = $"Added {added} texture(s)";
     }
 
+    // ── THE NEW ONE ─────────────────────────────────────────
+    /// <summary>Reset every slider in the currently-edited profile (default or exception) to factory defaults.
+    /// Keeps the exception's dye membership so the exception stays functional.</summary>
+    [RelayCommand]
+    void ResetProfileToDefaults()
+    {
+        var entry = CurrentEntry;
+        if (entry is null) return;
+        var current = CurrentProfile;
+        if (current is null) return;
+
+        // Detach so we don't render 25 times while resetting 25 fields.
+        current.PropertyChanged -= OnProfileChanged;
+        try
+        {
+            var savedDyes = (current as ExceptionProfile)?.Dyes.ToList();
+            CopySettings(new RecolorSettings(), current);
+            if (current is ExceptionProfile ex && savedDyes is not null)
+            {
+                ex.Dyes.Clear();
+                ex.Dyes.AddRange(savedDyes);
+            }
+        }
+        finally
+        {
+            current.PropertyChanged += OnProfileChanged;
+        }
+
+        SaveProject();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = "All sliders reset to defaults";
+    }
+
     [RelayCommand]
     void AddException()
     {
@@ -427,7 +459,7 @@ public partial class MainViewModel : ObservableObject
         ex.Dyes.AddRange(dyes);
         SaveProject();
         RebuildPreview();
-        Status = "Exception reset to default settings";
+        Status = "Exception reset to the default profile's settings";
     }
 
     static void CopySettings(RecolorSettings src, RecolorSettings dst)
@@ -444,7 +476,20 @@ public partial class MainViewModel : ObservableObject
         dst.HueSplit2 = src.HueSplit2; dst.ShadingGain2 = src.ShadingGain2;
         dst.ShadowSat2 = src.ShadowSat2; dst.ExtremeComp2 = src.ExtremeComp2;
         dst.BrightShadowDark2 = src.BrightShadowDark2; dst.Tolerance2 = src.Tolerance2;
-        dst.Pre = src.Pre.Clone(); dst.Post = src.Post.Clone();
+
+        // Mutate Pre/Post in-place. Replacing the objects (dst.Pre = src.Pre.Clone())
+        // breaks the live TwoWay bindings used by the Adjustments tab.
+        dst.Pre.Brightness = src.Pre.Brightness;
+        dst.Pre.Contrast = src.Pre.Contrast;
+        dst.Pre.Vibrance = src.Pre.Vibrance;
+        dst.Pre.Clarity = src.Pre.Clarity;
+        dst.Pre.HueShift = src.Pre.HueShift;
+
+        dst.Post.Brightness = src.Post.Brightness;
+        dst.Post.Contrast = src.Post.Contrast;
+        dst.Post.Vibrance = src.Post.Vibrance;
+        dst.Post.Clarity = src.Post.Clarity;
+        dst.Post.HueShift = src.Post.HueShift;
     }
 
     void RebuildCurrentDyes()
