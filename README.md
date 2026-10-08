@@ -1,4 +1,3 @@
-<img width="1125" height="1405" alt="Lovely_NoBG" src="https://github.com/user-attachments/assets/f25f3193-f176-45e0-bf93-4d66bae8d625" />
 <img width="100" height="100" alt="McTextureTweaker" src="https://github.com/user-attachments/assets/c4c5a579-8a70-4300-abdb-d3aa476e63da" />
 
 # McTextureTweaker
