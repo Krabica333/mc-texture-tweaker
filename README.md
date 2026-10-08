@@ -173,18 +173,6 @@ Original Python prototype: this project began as a Python script called texture_
 
 ---
 
-Changelog
-v1.0.0 — Initial release
-5 recolor methods with per-dye exception profiles
-3D live preview (cube + cross models, multi-face support)
-Pixel-art paint editor with layers, transforms, and undo
-Batch export with customizable filename templates
-Multi-project support with atomic saves
-Mod jar scanning with jar-in-jar support
-Portable single-file and installer builds
-
----
-
 ## License
 ***GNU GPLv3***
 https://www.gnu.org/licenses/gpl-3.0.en.html
