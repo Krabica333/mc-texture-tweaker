@@ -1,4 +1,4 @@
-<img width="100" height="100" alt="McTextureTweaker" src="https://github.com/user-attachments/assets/c4c5a579-8a70-4300-abdb-d3aa476e63da" />
+<img width="150" height="150" alt="McTextureTweaker" src="https://github.com/user-attachments/assets/c4c5a579-8a70-4300-abdb-d3aa476e63da" />
 
 # McTextureTweaker
 
