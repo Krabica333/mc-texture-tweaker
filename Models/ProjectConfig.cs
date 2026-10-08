@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace McTextureTweaker.Models;
 
@@ -69,10 +68,20 @@ public sealed class BlockInfo
     public List<string> Flags { get; set; } = new();
     public string? Family { get; set; }
     public string? Color { get; set; }
-
-    /// <summary>Root parent model id, e.g. "minecraft:block/cross". null if unknown.</summary>
     public string? RootParent { get; set; }
-
-    /// <summary>Mesh shape derived from RootParent: CubeAll / BottomTop / Column / Orientable / Cross / Flat.</summary>
     public string ModelShape { get; set; } = "CubeAll";
+}
+
+public sealed class TextureEntry
+{
+    public string? Name { get; set; }
+    public string? Category { get; set; }
+    public string? TexId { get; set; }
+    public List<string> Blocks { get; set; } = new();
+    public RecolorSettings Settings { get; set; } = new();
+    public List<ExceptionProfile> Exceptions { get; set; } = new();
+    public ModelKind ModelKind { get; set; } = ModelKind.Cube;
+
+    /// <summary>Optional paint layers drawn on top of the recolored output.</summary>
+    public PaintProject? Paint { get; set; }
 }

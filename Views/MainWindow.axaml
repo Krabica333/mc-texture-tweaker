@@ -28,8 +28,10 @@
                   Command="{Binding SetStageCommand}" CommandParameter="1"/>
           <Button Classes="nav" Content="2   Recolor &amp; Preview"
                   Command="{Binding SetStageCommand}" CommandParameter="2"/>
-          <Button Classes="nav" Content="3   Export"
+          <Button Classes="nav" Content="3   Paint"
                   Command="{Binding SetStageCommand}" CommandParameter="3"/>
+          <Button Classes="nav" Content="4   Export"
+                  Command="{Binding SetStageCommand}" CommandParameter="4"/>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
@@ -40,7 +42,8 @@
       <Grid Grid.Row="1">
         <v:Stage1View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsOne}}"/>
         <v:Stage2View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsTwo}}"/>
-        <v:Stage3View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsThree}}"/>
+        <v:PaintView  IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsThree}}"/>
+        <v:Stage3View IsVisible="{Binding Stage, Converter={x:Static vm:StageConverters.IsFour}}"/>
       </Grid>
 
       <Border Grid.Row="2" Classes="card" Padding="14,8" Margin="0,14,0,0">

@@ -1,0 +1,292 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:McTextureTweaker.ViewModels"
+             xmlns:pc="clr-namespace:McTextureTweaker.Rendering"
+             xmlns:models="clr-namespace:McTextureTweaker.Models"
+             x:Class="McTextureTweaker.Views.PaintView"
+             x:DataType="vm:MainViewModel">
+
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Ctrl+Z"       Command="{Binding Paint.UndoCommand}"/>
+    <KeyBinding Gesture="Ctrl+Y"       Command="{Binding Paint.RedoCommand}"/>
+    <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding Paint.RedoCommand}"/>
+    <KeyBinding Gesture="Ctrl+S"       Command="{Binding Paint.SavePngCommand}"/>
+    <KeyBinding Gesture="B"            Command="{Binding Paint.SetPencilCommand}"/>
+    <KeyBinding Gesture="E"            Command="{Binding Paint.SetEraserCommand}"/>
+    <KeyBinding Gesture="G"            Command="{Binding Paint.SetFillCommand}"/>
+    <KeyBinding Gesture="I"            Command="{Binding Paint.SetEyedropperCommand}"/>
+    <KeyBinding Gesture="L"            Command="{Binding Paint.SetLineCommand}"/>
+    <KeyBinding Gesture="R"            Command="{Binding Paint.SetRectCommand}"/>
+    <KeyBinding Gesture="Shift+R"      Command="{Binding Paint.SetRectFillCommand}"/>
+    <KeyBinding Gesture="O"            Command="{Binding Paint.SetEllipseCommand}"/>
+    <KeyBinding Gesture="Shift+O"      Command="{Binding Paint.SetEllipseFillCommand}"/>
+  </UserControl.KeyBindings>
+
+  <UserControl.Styles>
+    <Style Selector="Button.swatch">
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.swatch:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#3A4046"/>
+    </Style>
+
+    <Style Selector="Button.mini">
+      <Setter Property="Width" Value="30"/>
+      <Setter Property="Height" Value="30"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Background" Value="#23272C"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.mini:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#3A4046"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="240,*,320">
+
+    <!-- ═══ LEFT: tools ═══ -->
+    <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
+      <ScrollViewer>
+        <StackPanel Spacing="10">
+
+          <TextBlock Text="Tools" FontWeight="SemiBold"/>
+
+          <StackPanel Spacing="4">
+            <RadioButton GroupName="tool" Content="✏  Pencil  (B)" IsChecked="True"
+                         Command="{Binding Paint.SetPencilCommand}"/>
+            <RadioButton GroupName="tool" Content="⌫  Eraser  (E)"
+                         Command="{Binding Paint.SetEraserCommand}"/>
+            <RadioButton GroupName="tool" Content="▨  Fill  (G)"
+                         Command="{Binding Paint.SetFillCommand}"/>
+            <RadioButton GroupName="tool" Content="◎  Eyedropper  (I)"
+                         Command="{Binding Paint.SetEyedropperCommand}"/>
+          </StackPanel>
+
+          <TextBlock Text="Shapes" FontWeight="SemiBold" Margin="0,6,0,0"/>
+          <StackPanel Spacing="4">
+            <RadioButton GroupName="tool" Content="╱  Line  (L)"
+                         Command="{Binding Paint.SetLineCommand}"/>
+            <RadioButton GroupName="tool" Content="□  Rectangle  (R)"
+                         Command="{Binding Paint.SetRectCommand}"/>
+            <RadioButton GroupName="tool" Content="■  Rect filled  (Shift+R)"
+                         Command="{Binding Paint.SetRectFillCommand}"/>
+            <RadioButton GroupName="tool" Content="○  Ellipse  (O)"
+                         Command="{Binding Paint.SetEllipseCommand}"/>
+            <RadioButton GroupName="tool" Content="●  Ellipse filled  (Shift+O)"
+                         Command="{Binding Paint.SetEllipseFillCommand}"/>
+          </StackPanel>
+
+          <TextBlock Text="Right-click: erase  ·  Alt-click: pick colour"
+                     FontSize="10" Foreground="{StaticResource TextSecondary}"
+                     TextWrapping="Wrap"/>
+
+          <Separator/>
+
+          <TextBlock Text="Zoom" FontWeight="SemiBold"/>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Classes="mini" Content="−" Command="{Binding Paint.ZoomOutCommand}"/>
+            <TextBlock Text="{Binding Paint.Zoom}" VerticalAlignment="Center"
+                       FontFamily="Consolas" MinWidth="24" TextAlignment="Center"/>
+            <Button Classes="mini" Content="+" Command="{Binding Paint.ZoomInCommand}"/>
+            <CheckBox Content="Grid" IsChecked="{Binding Paint.ShowGrid, Mode=TwoWay}"
+                      Margin="8,0,0,0"/>
+          </StackPanel>
+
+          <Separator/>
+
+          <TextBlock Text="Undo / Redo" FontWeight="SemiBold"/>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Content="↶  Undo" Command="{Binding Paint.UndoCommand}"
+                    ToolTip.Tip="Ctrl+Z"/>
+            <Button Content="↷  Redo" Command="{Binding Paint.RedoCommand}"
+                    ToolTip.Tip="Ctrl+Y"/>
+          </StackPanel>
+
+          <Separator/>
+
+          <TextBlock Text="Base" FontWeight="SemiBold"/>
+          <CheckBox Content="Recolored base"
+                    IsChecked="{Binding Paint.BaseIsRecolored, Mode=TwoWay}"
+                    ToolTip.Tip="On: paint on top of the recolored output. Off: paint on the raw source texture."/>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <!-- ═══ CENTER: canvas ═══ -->
+    <Border Grid.Column="1" Classes="card" Margin="0,0,8,0">
+      <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{Binding Paint.TextureName}"
+                       FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Paint.CoordinateText}"
+                       Foreground="{StaticResource TextSecondary}"
+                       VerticalAlignment="Center" FontFamily="Consolas" FontSize="11"/>
+          </StackPanel>
+
+          <Border Grid.Column="1"
+                  Width="36" Height="26"
+                  Margin="0,0,8,0"
+                  CornerRadius="4"
+                  BorderThickness="1"
+                  BorderBrush="#3A4046"
+                  Background="{Binding Paint.CurrentColor, Converter={x:Static vm:ColorToBrush.Instance}}"/>
+
+          <Button Grid.Column="2" Content="Save PNG…"
+                  Margin="0,0,6,0"
+                  Command="{Binding Paint.SavePngCommand}"
+                  ToolTip.Tip="Ctrl+S — exports the composited texture"/>
+
+          <Button Grid.Column="3" Content="Clear layer"
+                  Command="{Binding Paint.ClearLayerCommand}"/>
+        </Grid>
+
+        <Border Grid.Row="1" Margin="0,8,0,0" CornerRadius="8"
+                ClipToBounds="True" Background="#1A1A1A">
+          <pc:PaintCanvas x:Name="Canvas"
+                          BasePixels="{Binding Paint.BasePixels}"
+                          Layers="{Binding Paint.Layers}"
+                          ActiveLayerIndex="{Binding Paint.ActiveLayerIndex}"
+                          Zoom="{Binding Paint.Zoom}"
+                          ShowGrid="{Binding Paint.ShowGrid}"
+                          CurrentColor="{Binding Paint.CurrentColor}"
+                          Tool="{Binding Paint.Tool}"/>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- ═══ RIGHT: layers + palette ═══ -->
+    <Border Grid.Column="2" Classes="card">
+      <ScrollViewer>
+        <StackPanel Spacing="10">
+
+          <TextBlock Text="Layers" FontWeight="SemiBold"/>
+          <ListBox ItemsSource="{Binding Paint.Layers}"
+                   SelectedIndex="{Binding Paint.ActiveLayerIndex, Mode=TwoWay}"
+                   MaxHeight="180">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="models:PaintLayer">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <CheckBox Grid.Column="0" IsChecked="{Binding Visible, Mode=TwoWay}"
+                            Margin="0,0,6,0"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Opacity, StringFormat={}{0:P0}}"
+                             FontSize="10" Foreground="{StaticResource TextSecondary}"
+                             VerticalAlignment="Center"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <WrapPanel>
+            <Button Classes="mini" Content="+" Margin="0,0,4,4"
+                    Command="{Binding Paint.AddLayerCommand}"/>
+            <Button Classes="mini" Content="⧉" Margin="0,0,4,4"
+                    Command="{Binding Paint.DuplicateLayerCommand}"/>
+            <Button Classes="mini" Content="⤓" Margin="0,0,4,4"
+                    Command="{Binding Paint.MergeDownCommand}"/>
+            <Button Classes="mini" Content="↑" Margin="0,0,4,4"
+                    Command="{Binding Paint.MoveLayerUpCommand}"/>
+            <Button Classes="mini" Content="↓" Margin="0,0,4,4"
+                    Command="{Binding Paint.MoveLayerDownCommand}"/>
+            <Button Classes="mini" Content="×" Margin="0,0,4,4"
+                    Command="{Binding Paint.DeleteLayerCommand}"/>
+          </WrapPanel>
+
+          <TextBlock Text="Transform layer" FontWeight="SemiBold"/>
+          <WrapPanel>
+            <Button Classes="mini" Content="⇄" Margin="0,0,4,4"
+                    Command="{Binding Paint.FlipHorizontalCommand}"
+                    ToolTip.Tip="Flip horizontal"/>
+            <Button Classes="mini" Content="⇅" Margin="0,0,4,4"
+                    Command="{Binding Paint.FlipVerticalCommand}"
+                    ToolTip.Tip="Flip vertical"/>
+            <Button Classes="mini" Content="↻" Margin="0,0,4,4"
+                    Command="{Binding Paint.RotateCwCommand}"
+                    ToolTip.Tip="Rotate 90° clockwise"/>
+            <Button Classes="mini" Content="↺" Margin="0,0,4,4"
+                    Command="{Binding Paint.RotateCcwCommand}"
+                    ToolTip.Tip="Rotate 90° counter-clockwise"/>
+          </WrapPanel>
+
+          <TextBlock Text="Layer opacity" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+          <Slider Minimum="0" Maximum="1"
+                  Value="{Binding Paint.CurrentLayerOpacity, Mode=TwoWay}"/>
+
+          <Separator/>
+
+          <TextBlock Text="Colors" FontWeight="SemiBold"/>
+          <ItemsControl ItemsSource="{Binding Paint.Palette}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="swatch" Margin="2"
+                        Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).Paint.PickColorCommand}"
+                        CommandParameter="{Binding}">
+                  <Border CornerRadius="4" Margin="1"
+                          BorderThickness="1" BorderBrush="#3A4046"
+                          Background="{Binding Converter={x:Static vm:ColorToBrush.Instance}}"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="Recent" FontWeight="SemiBold" Margin="0,4,0,0"/>
+          <ItemsControl ItemsSource="{Binding Paint.RecentColors}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="swatch" Margin="2"
+                        Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).Paint.PickColorCommand}"
+                        CommandParameter="{Binding}">
+                  <Border CornerRadius="4" Margin="1"
+                          BorderThickness="1" BorderBrush="#3A4046"
+                          Background="{Binding Converter={x:Static vm:ColorToBrush.Instance}}"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="Custom" FontWeight="SemiBold" Margin="0,4,0,0"/>
+          <ItemsControl ItemsSource="{Binding Paint.CustomPalette}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="swatch" Margin="2"
+                        Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).Paint.PickColorCommand}"
+                        CommandParameter="{Binding}">
+                  <Border CornerRadius="4" Margin="1"
+                          BorderThickness="1" BorderBrush="#3A4046"
+                          Background="{Binding Converter={x:Static vm:ColorToBrush.Instance}}"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBox Width="100" Text="{Binding Paint.HexInput, Mode=TwoWay}"
+                     Watermark="#RRGGBB" FontFamily="Consolas"/>
+            <Button Content="Apply" Command="{Binding Paint.ApplyHexInputCommand}"/>
+            <Button Content="+ Save" Command="{Binding Paint.AddCustomColorCommand}"/>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+  </Grid>
+</UserControl>

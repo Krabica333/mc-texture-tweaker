@@ -48,6 +48,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<BlockRow> FilteredBlocks { get; } = new();
     public ObservableCollection<BlockRow> SelectedBlocks { get; } = new();
     public ObservableCollection<string> Namespaces { get; } = new() { "All namespaces" };
+    public PaintViewModel Paint { get; }
 
     [ObservableProperty] private string _textureSearch = "";
     [ObservableProperty] private string _pattern = "{dye}_{name}.png";
@@ -132,6 +133,8 @@ public partial class MainViewModel : ObservableObject
         SelectedDye = norm;
         Status = $"Added dye '{norm}'.";
     }
+    
+    public Avalonia.Controls.Window? GetWindowForDialog() => GetWindow();
 
     [RelayCommand]
     async Task RenameDye(DyeItem? item)
@@ -357,7 +360,11 @@ public partial class MainViewModel : ObservableObject
     public bool CanAddException => CurrentEntry is not null && CurrentEntry.Exceptions.Count < 6;
     public bool Method2Visible => CurrentProfile?.Method2.HasValue == true;
 
-    public MainViewModel() => RefreshProjectList();
+    public MainViewModel()
+    {
+        RefreshProjectList();
+        Paint = new PaintViewModel(this);
+    }
 
     // ── Throttles & profile subscription ────────────────────
     void EnsureThrottles()
@@ -1291,7 +1298,7 @@ void SelectGroup(BlockGroup? g)
         catch { return null; }
     }
 
-    TexImage GetSourceImage(string key)
+    public TexImage GetSourceImage(string key)
     {
         if (_cachedSrc is not null && _cachedSrcKey == key) return _cachedSrc;
         _cachedSrc = LoadTexImage(key);

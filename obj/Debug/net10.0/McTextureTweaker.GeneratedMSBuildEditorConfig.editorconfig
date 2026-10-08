@@ -40,6 +40,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [X:/VERMINANDCO/minecraft-texture-tinter/Views/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[X:/VERMINANDCO/minecraft-texture-tinter/Views/PaintView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [X:/VERMINANDCO/minecraft-texture-tinter/Views/Stage1View.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

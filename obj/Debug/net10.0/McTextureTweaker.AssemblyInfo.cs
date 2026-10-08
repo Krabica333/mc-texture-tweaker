@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("McTextureTweaker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e37b5d473f9cf2255b85592be07e9ccf49738c6b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58fb62ae87c0aba0b4b69b666d56be4f70a1643a")]
 [assembly: System.Reflection.AssemblyProductAttribute("McTextureTweaker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("McTextureTweaker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

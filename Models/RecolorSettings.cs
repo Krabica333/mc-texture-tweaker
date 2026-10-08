@@ -77,17 +77,6 @@ public sealed class CompensationSettings
     public float Fit { get; set; } = 0.12f;
 }
 
-public sealed class TextureEntry
-{
-    public string? Name { get; set; }
-    public string? Category { get; set; }
-    public string? TexId { get; set; }
-    public System.Collections.Generic.List<string> Blocks { get; set; } = new();
-    public RecolorSettings Settings { get; set; } = new();
-    public System.Collections.Generic.List<ExceptionProfile> Exceptions { get; set; } = new();
-    public ModelKind ModelKind { get; set; } = ModelKind.Cube;
-}
-
 public sealed class ExceptionProfile : RecolorSettings
 {
     public System.Collections.Generic.List<string> Dyes { get; set; } = new();
