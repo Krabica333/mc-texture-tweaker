@@ -75,13 +75,13 @@ It works offline, without touching Minecraft's install, and without needing Phot
 
 ## Installation
 
-### Option A — Installer (recommended)
+~~ ### Option A — Installer (recommended)
 
 1. Download `McTextureTweaker-Setup-x.y.z.exe` from the [Releases](../../releases) page.
 2. Run it. Follow the wizard.
 3. Launch **McTextureTweaker** from the Start Menu or desktop shortcut.
 
-No admin rights required. Uninstall via Windows Settings → Apps.
+No admin rights required. Uninstall via Windows Settings → Apps. ~~
 
 ### Option B — Portable
 
