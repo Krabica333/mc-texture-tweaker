@@ -69,7 +69,10 @@ It works offline, without touching Minecraft's install, and without needing Phot
 
 ## Screenshots
 
-*(Add your own here. Suggested: Stage 1 with the block list, Stage 2 with the 3D preview and slider panel, Stage 3 with the paint canvas, Stage 4 export.)*
+<img width="1918" height="1025" alt="Screenshot 2026-10-08 150532" src="https://github.com/user-attachments/assets/7b82f407-4935-4817-86aa-0ef80fe3130a" />
+<img width="1917" height="1027" alt="Screenshot 2026-10-08 150432" src="https://github.com/user-attachments/assets/92c76492-b264-498b-9e09-95b2583711ac" />
+<img width="1918" height="1029" alt="Screenshot 2026-10-08 150449" src="https://github.com/user-attachments/assets/d428b0ad-4169-4996-a29d-1b133e24e462" />
+<img width="1916" height="1026" alt="Screenshot 2026-10-08 150629" src="https://github.com/user-attachments/assets/187589e9-53e6-47f4-8f5b-352126390df7" />
 
 ---
 
