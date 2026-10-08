@@ -290,31 +290,61 @@ public partial class PaintViewModel : ObservableObject
     [RelayCommand]
     void MergeDown()
     {
-        if (ActiveLayerIndex <= 0 || ActiveLayerIndex >= Layers.Count) return;
-        var top = Layers[ActiveLayerIndex];
-        var bot = Layers[ActiveLayerIndex - 1];
+        if (Project is null) return;
+
+        if (Layers.Count < 2)
+        {
+            _main.Status = "Nothing to merge — only one layer.";
+            return;
+        }
+        if (ActiveLayerIndex <= 0 || ActiveLayerIndex >= Layers.Count)
+        {
+            _main.Status = "Select a layer that has a layer below it, then merge.";
+            return;
+        }
+
+        int topIdx = ActiveLayerIndex;
+        int botIdx = topIdx - 1;
+
+        var top = Layers[topIdx];
+        var bot = Layers[botIdx];
+
         var topPx = top.PixelData;
         var botPx = bot.PixelData;
         float topOp = top.Opacity;
 
+        // Unpremultiplied source-over compositing (top over bottom)
         for (int i = 0; i < PaintLayer.Size * PaintLayer.Size; i++)
         {
             int b = i * 4;
-            double a = topPx[b + 3] / 255.0 * topOp;
-            if (a <= 0) continue;
+
+            double aTop = topPx[b + 3] / 255.0 * topOp;
+            if (aTop <= 0) continue;
+
+            double aBot = botPx[b + 3] / 255.0;
+            double aOut = aTop + aBot * (1 - aTop);
+            if (aOut <= 0) continue;
+
             for (int c = 0; c < 3; c++)
-                botPx[b + c] = (byte)Math.Clamp(
-                    topPx[b + c] * a + botPx[b + c] * (1 - a), 0, 255);
-            botPx[b + 3] = (byte)Math.Clamp(
-                255 * (a + botPx[b + 3] / 255.0 * (1 - a)), 0, 255);
+            {
+                double cTop = topPx[b + c];
+                double cBot = botPx[b + c];
+                double cOut = (cTop * aTop + cBot * aBot * (1 - aTop)) / aOut;
+                botPx[b + c] = (byte)Math.Clamp(Math.Round(cOut), 0, 255);
+            }
+            botPx[b + 3] = (byte)Math.Clamp(Math.Round(aOut * 255), 0, 255);
         }
+
         bot.SetPixels(botPx);
         bot.Opacity = 1;
 
-        Layers.RemoveAt(ActiveLayerIndex);
-        Project!.Layers.RemoveAt(ActiveLayerIndex);
-        ActiveLayerIndex--;
+        // Move selection to the survivor before removing, then drop the top layer.
+        ActiveLayerIndex = botIdx;
+        Layers.RemoveAt(topIdx);
+        if (topIdx < Project.Layers.Count) Project.Layers.RemoveAt(topIdx);
+
         _main.SaveProject();
+        _main.Status = $"Merged layer {topIdx + 1} into layer {botIdx + 1}.";
     }
 
     [RelayCommand]
