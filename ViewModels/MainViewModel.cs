@@ -12,13 +12,14 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TextureTinter.Engine;
-using TextureTinter.Minecraft;
-using TextureTinter.Models;
-using TextureTinter.Rendering;
-using TextureTinter.Services;
+using McTextureTweaker.Engine;
+using McTextureTweaker.Minecraft;
+using McTextureTweaker.Models;
+using McTextureTweaker.Rendering;
+using McTextureTweaker.Services;
+using McTextureTweaker.Views;
 
-namespace TextureTinter.ViewModels;
+namespace McTextureTweaker.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
@@ -73,6 +74,269 @@ public partial class MainViewModel : ObservableObject
     string? _cachedSrcKey;
 
     RecolorSettings? _subscribed;
+
+        // ── Dye / category management ────────────────────────────
+    static string NormName(string s) => s.Trim().ToLowerInvariant().Replace(' ', '_');
+
+    static string? NormHex(string s)
+    {
+        s = s.Trim().TrimStart('#').ToUpperInvariant();
+        if (s.Length == 3) s = $"{s[0]}{s[0]}{s[1]}{s[1]}{s[2]}{s[2]}";
+        if (s.Length != 6) return null;
+        foreach (var c in s) if (!Uri.IsHexDigit(c)) return null;
+        return "#" + s;
+    }
+
+    static Dictionary<string, T> RekeyDictionary<T>(Dictionary<string, T> src, string oldKey, string newKey)
+    {
+        var dst = new Dictionary<string, T>(src.Count);
+        foreach (var (k, v) in src) dst[k == oldKey ? newKey : k] = v;
+        return dst;
+    }
+
+    void RekeyCompensation(Func<string, string, string, (string, string, string)> fn)
+    {
+        var dst = new Dictionary<string, CompensationSettings>(Config.Compensation.Count);
+        foreach (var (k, v) in Config.Compensation)
+        {
+            var parts = k.Split('|');
+            if (parts.Length != 3) { dst[k] = v; continue; }
+            var (tp, c, d) = fn(parts[0], parts[1], parts[2]);
+            dst[$"{tp}|{c}|{d}"] = v;
+        }
+        Config.Compensation = dst;
+    }
+
+    [RelayCommand]
+    async Task AddDye()
+    {
+        var owner = GetWindow(); if (owner is null) return;
+
+        var name = await new InputDialog("Add dye", "Dye name:", "").ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var norm = NormName(name);
+        if (Config.Dyes.ContainsKey(norm)) { Status = $"'{norm}' already exists."; return; }
+
+        var hex = await new InputDialog("Add dye", $"Color for '{norm}' (hex):", "#FFFFFF").ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(hex)) return;
+        var nh = NormHex(hex);
+        if (nh is null) { Status = "Invalid hex color."; return; }
+
+        Config.Dyes[norm] = new Dye { Color = nh };
+        foreach (var cat in Config.Categories.Values)
+            cat.Colors[norm] = nh;
+
+        SaveProject();
+        RefreshDyes();
+        RefreshCategories();
+        SelectedDye = norm;
+        Status = $"Added dye '{norm}'.";
+    }
+
+    [RelayCommand]
+    async Task RenameDye(DyeItem? item)
+    {
+        if (item is null) return;
+        var owner = GetWindow(); if (owner is null) return;
+
+        var old = item.Name;
+        var name = await new InputDialog("Rename dye", $"New name for '{old}':", old).ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var norm = NormName(name);
+        if (norm == old) return;
+        if (Config.Dyes.ContainsKey(norm)) { Status = $"'{norm}' already exists."; return; }
+
+        Config.Dyes = RekeyDictionary(Config.Dyes, old, norm);
+        foreach (var cat in Config.Categories.Values)
+            cat.Colors = RekeyDictionary(cat.Colors, old, norm);
+        foreach (var tex in Config.Textures.Values)
+            foreach (var ex in tex.Exceptions)
+                for (int i = 0; i < ex.Dyes.Count; i++)
+                    if (ex.Dyes[i] == old) ex.Dyes[i] = norm;
+        RekeyCompensation((tp, c, d) => (tp, c, d == old ? norm : d));
+
+        SaveProject();
+        if (SelectedDye == old) SelectedDye = norm;
+        RefreshDyes();
+        RefreshCategories();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = $"Renamed '{old}' → '{norm}'.";
+    }
+
+    [RelayCommand]
+    async Task ChangeDyeColor(DyeItem? item)
+    {
+        if (item is null) return;
+        var owner = GetWindow(); if (owner is null) return;
+
+        var cur = Config.Dyes[item.Name].Color;
+        var input = await new InputDialog("Change color", "Hex color (e.g. #80C71F):", cur).ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(input)) return;
+        var nh = NormHex(input);
+        if (nh is null) { Status = "Invalid hex."; return; }
+
+        Config.Dyes[item.Name].Color = nh;
+        SaveProject();
+        RefreshDyes();
+        RefreshCategories();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = $"Changed '{item.Name}' to {nh}.";
+    }
+
+    [RelayCommand]
+    void DeleteDye(DyeItem? item)
+    {
+        if (item is null) return;
+        if (Config.Dyes.Count <= 1) { Status = "Need at least one dye."; return; }
+        var name = item.Name;
+
+        Config.Dyes.Remove(name);
+        foreach (var cat in Config.Categories.Values)
+            cat.Colors.Remove(name);
+        foreach (var tex in Config.Textures.Values)
+            foreach (var ex in tex.Exceptions)
+                ex.Dyes.Remove(name);
+        RekeyCompensation((tp, c, d) => (tp, c, d == name ? "__gone__" : d));
+        Config.Compensation = Config.Compensation
+            .Where(kv => !kv.Key.EndsWith("|__gone__"))
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        SaveProject();
+        if (SelectedDye == name) SelectedDye = Config.Dyes.Keys.FirstOrDefault();
+        RefreshDyes();
+        RefreshCategories();
+        RebuildAllPreviews();
+        Status = $"Deleted dye '{name}'.";
+    }
+
+    [RelayCommand]
+    void DuplicateDye(DyeItem? item)
+    {
+        if (item is null) return;
+        var old = item.Name;
+        var taken = Config.Dyes.Keys.ToHashSet();
+        var n = $"{old}_copy";
+        int i = 2; while (taken.Contains(n)) { n = $"{old}_copy_{i++}"; }
+
+        Config.Dyes[n] = new Dye { Color = Config.Dyes[old].Color, Icon = Config.Dyes[old].Icon };
+        foreach (var cat in Config.Categories.Values)
+            cat.Colors[n] = cat.Colors.TryGetValue(old, out var c) ? c : Config.Dyes[old].Color;
+
+        SaveProject();
+        RefreshDyes();
+        RefreshCategories();
+        SelectedDye = n;
+        Status = $"Duplicated '{old}' as '{n}'.";
+    }
+
+    [RelayCommand]
+    async Task AddCategory()
+    {
+        var owner = GetWindow(); if (owner is null) return;
+        var name = await new InputDialog("Add category", "Category name:", "").ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var norm = NormName(name);
+        if (Config.Categories.ContainsKey(norm)) { Status = $"'{norm}' already exists."; return; }
+
+        var cat = new Category();
+        foreach (var (d, dye) in Config.Dyes)
+            cat.Colors[d] = dye.Color;
+        Config.Categories[norm] = cat;
+
+        SaveProject();
+        RefreshCategories();
+        Status = $"Added category '{norm}'.";
+    }
+
+    [RelayCommand]
+    async Task RenameCategory(CategoryItem? item)
+    {
+        if (item is null) return;
+        var owner = GetWindow(); if (owner is null) return;
+        var old = item.Name;
+        var name = await new InputDialog("Rename category", $"New name for '{old}':", old).ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var norm = NormName(name);
+        if (norm == old) return;
+        if (Config.Categories.ContainsKey(norm)) { Status = $"'{norm}' already exists."; return; }
+
+        Config.Categories = RekeyDictionary(Config.Categories, old, norm);
+        foreach (var tex in Config.Textures.Values)
+            if (tex.Category == old) tex.Category = norm;
+        RekeyCompensation((tp, c, d) => (tp, c == old ? norm : c, d));
+
+        SaveProject();
+        RefreshCategories();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = $"Renamed category '{old}' → '{norm}'.";
+    }
+
+    [RelayCommand]
+    async Task ChangeCategoryColor(CategoryItem? item)
+    {
+        if (item is null || SelectedDye is null) return;
+        var owner = GetWindow(); if (owner is null) return;
+        var cat = Config.Categories[item.Name];
+        var cur = cat.Colors.TryGetValue(SelectedDye, out var h) ? h : Config.Dyes[SelectedDye].Color;
+        var input = await new InputDialog("Change color",
+            $"Hex for '{item.Name}' / {SelectedDye}:", cur).ShowDialog<string?>(owner);
+        if (string.IsNullOrWhiteSpace(input)) return;
+        var nh = NormHex(input);
+        if (nh is null) { Status = "Invalid hex."; return; }
+
+        cat.Colors[SelectedDye] = nh;
+        SaveProject();
+        RefreshCategories();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = $"Changed {item.Name}/{SelectedDye} to {nh}.";
+    }
+
+    [RelayCommand]
+    void DeleteCategory(CategoryItem? item)
+    {
+        if (item is null) return;
+        if (Config.Categories.Count <= 1) { Status = "Need at least one category."; return; }
+        var name = item.Name;
+
+        Config.Categories.Remove(name);
+        foreach (var tex in Config.Textures.Values)
+            if (tex.Category == name) tex.Category = null;
+        RekeyCompensation((tp, c, d) => (tp, c == name ? "__gone__" : c, d));
+        Config.Compensation = Config.Compensation
+            .Where(kv => kv.Key.Split('|')[1] != "__gone__")
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        SaveProject();
+        RefreshCategories();
+        RebuildAllPreviews();
+        RebuildPreview();
+        Status = $"Deleted category '{name}'.";
+    }
+
+    [RelayCommand]
+    void DuplicateCategory(CategoryItem? item)
+    {
+        if (item is null) return;
+        var old = item.Name;
+        var taken = Config.Categories.Keys.ToHashSet();
+        var n = $"{old}_copy";
+        int i = 2; while (taken.Contains(n)) { n = $"{old}_copy_{i++}"; }
+
+        var src = Config.Categories[old];
+        Config.Categories[n] = new Category
+        {
+            Icon = src.Icon,
+            Colors = new Dictionary<string, string>(src.Colors),
+        };
+
+        SaveProject();
+        RefreshCategories();
+        Status = $"Duplicated '{old}' as '{n}'.";
+    }
 
     public string MinecraftSummary
     {

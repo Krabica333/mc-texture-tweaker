@@ -4,10 +4,10 @@ using System.IO;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using TextureTinter.Engine;
-using TextureTinter.Models;
+using McTextureTweaker.Engine;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.Services;
+namespace McTextureTweaker.Services;
 
 public static class ExportService
 {

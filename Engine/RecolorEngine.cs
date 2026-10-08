@@ -1,9 +1,9 @@
 using System;
 using System.Numerics;
 using System.Threading.Tasks;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.Engine;
+namespace McTextureTweaker.Engine;
 
 public static class RecolorEngine
 {

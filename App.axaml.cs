@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using TextureTinter.ViewModels;
-using TextureTinter.Views;
+using McTextureTweaker.ViewModels;
+using McTextureTweaker.Views;
 
-namespace TextureTinter;
+namespace McTextureTweaker;
 
 public partial class App : Application
 {

@@ -5,9 +5,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.Minecraft;
+namespace McTextureTweaker.Minecraft;
 
 public sealed class ScanResult
 {

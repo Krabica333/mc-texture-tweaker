@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace TextureTinter.Models;
+namespace McTextureTweaker.Models;
 
 public sealed class ProjectConfig
 {

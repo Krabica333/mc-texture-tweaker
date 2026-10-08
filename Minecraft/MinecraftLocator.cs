@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace TextureTinter.Minecraft;
+namespace McTextureTweaker.Minecraft;
 
 public static class MinecraftLocator
 {

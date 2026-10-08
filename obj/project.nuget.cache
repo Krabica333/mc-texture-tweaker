@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Hp02C6XvFdc=",
+  "dgSpecHash": "PUiSvCbujkw=",
   "success": true,
-  "projectFilePath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\TextureTinter.csproj",
+  "projectFilePath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\McTextureTweaker.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Seb\\.nuget\\packages\\avalonia\\11.2.0\\avalonia.11.2.0.nupkg.sha512",
     "C:\\Users\\Seb\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.22045.20230930\\avalonia.angle.windows.natives.2.1.22045.20230930.nupkg.sha512",

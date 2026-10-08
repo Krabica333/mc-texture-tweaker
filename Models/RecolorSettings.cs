@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TextureTinter.Models;
+namespace McTextureTweaker.Models;
 
 public enum RecolorMethod { Average, Classic, Perceptual, Pick, Hsv }
 public enum ModelKind { Cube, Cross }

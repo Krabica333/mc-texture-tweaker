@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 
-namespace TextureTinter.Views.Controls;
+namespace McTextureTweaker.Views.Controls;
 
 public partial class ViewModeToggle : UserControl
 {

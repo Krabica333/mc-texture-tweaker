@@ -1,4 +1,4 @@
-namespace TextureTinter.Models;
+namespace McTextureTweaker.Models;
 
 public static class Dyes
 {

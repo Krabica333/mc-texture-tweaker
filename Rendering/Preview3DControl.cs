@@ -7,9 +7,9 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.Rendering;
+namespace McTextureTweaker.Rendering;
 
 public sealed class Preview3DControl : Control
 {

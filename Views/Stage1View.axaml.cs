@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TextureTinter.Views;
+namespace McTextureTweaker.Views;
 
 public partial class Stage1View : UserControl
 {

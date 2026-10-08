@@ -1,6 +1,6 @@
 using Avalonia.Media.Imaging;
 
-namespace TextureTinter.Rendering;
+namespace McTextureTweaker.Rendering;
 
 public sealed class PreviewTextureSet
 {

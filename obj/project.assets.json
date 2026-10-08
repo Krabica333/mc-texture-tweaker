@@ -1441,9 +1441,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "X:\\VERMINANDCO\\minecraft-texture-tinter\\TextureTinter.csproj",
-      "projectName": "TextureTinter",
-      "projectPath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\TextureTinter.csproj",
+      "projectUniqueName": "X:\\VERMINANDCO\\minecraft-texture-tinter\\McTextureTweaker.csproj",
+      "projectName": "McTextureTweaker",
+      "projectPath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\McTextureTweaker.csproj",
       "packagesPath": "C:\\Users\\Seb\\.nuget\\packages\\",
       "outputPath": "X:\\VERMINANDCO\\minecraft-texture-tinter\\obj\\",
       "projectStyle": "PackageReference",

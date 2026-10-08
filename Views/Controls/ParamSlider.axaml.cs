@@ -4,7 +4,7 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
-namespace TextureTinter.Views.Controls;
+namespace McTextureTweaker.Views.Controls;
 
 public partial class ParamSlider : UserControl
 {

@@ -4,9 +4,9 @@ using System.Linq;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.ViewModels;
+namespace McTextureTweaker.ViewModels;
 
 public sealed class ProjectEntry
 {

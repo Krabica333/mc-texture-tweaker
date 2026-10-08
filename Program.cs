@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace TextureTinter;
+namespace McTextureTweaker;
 
 internal static class Program
 {

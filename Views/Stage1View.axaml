@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:TextureTinter.ViewModels"
-             x:Class="TextureTinter.Views.Stage1View"
+             xmlns:vm="clr-namespace:McTextureTweaker.ViewModels"
+             x:Class="McTextureTweaker.Views.Stage1View"
              x:DataType="vm:MainViewModel">
   <Grid RowDefinitions="Auto,Auto,*">
 

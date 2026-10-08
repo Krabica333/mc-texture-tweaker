@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="TextureTinter.Views.Controls.ViewModeToggle"
+             x:Class="McTextureTweaker.Views.Controls.ViewModeToggle"
              x:Name="Root">
 
   <Border Background="#1B1E22"
@@ -20,7 +20,7 @@
 
         <!-- By-block icon: visible when By Block -->
         <Image Grid.Column="0"
-               Source="avares://TextureTinter/Assets/byblock.png"
+               Source="avares://McTextureTweaker/Assets/byblock.png"
                Width="22" Height="22"
                Margin="0,0,6,0"
                VerticalAlignment="Center"
@@ -36,7 +36,7 @@
 
         <!-- By-texture icon: visible when By Texture -->
         <Image Grid.Column="2"
-               Source="avares://TextureTinter/Assets/bytexture.png"
+               Source="avares://McTextureTweaker/Assets/bytexture.png"
                Width="22" Height="22"
                Margin="6,0,0,0"
                VerticalAlignment="Center"

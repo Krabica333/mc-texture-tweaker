@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
-namespace TextureTinter.Engine;
+namespace McTextureTweaker.Engine;
 
 public sealed class TexImage
 {

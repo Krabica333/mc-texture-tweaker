@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:TextureTinter.ViewModels"
-             xmlns:r="clr-namespace:TextureTinter.Rendering"
-             xmlns:ctl="clr-namespace:TextureTinter.Views.Controls"
-             x:Class="TextureTinter.Views.Stage2View"
+             xmlns:vm="clr-namespace:McTextureTweaker.ViewModels"
+             xmlns:r="clr-namespace:McTextureTweaker.Rendering"
+             xmlns:ctl="clr-namespace:McTextureTweaker.Views.Controls"
+             x:Class="McTextureTweaker.Views.Stage2View"
              x:DataType="vm:MainViewModel">
 
   <UserControl.Styles>
@@ -53,7 +53,8 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid ColumnDefinitions="240,200,180,*">
+  <!-- 240 (Textures) | 220 (Dyes + Colors stacked) | * (Main) -->
+  <Grid ColumnDefinitions="240,220,*">
 
     <!-- Col 0: Textures / Blocks -->
     <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
@@ -64,7 +65,6 @@
                   Command="{Binding AddTextureFileCommand}"/>
         </Grid>
 
-        <!-- Search + view switch -->
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,6,0,0">
           <TextBox Grid.Column="0" Watermark="Search…"
                    Text="{Binding TextureSearch, Mode=TwoWay}"
@@ -74,7 +74,7 @@
                               ToolTip.Tip="Switch between grouped-by-block and flat texture lists"/>
         </Grid>
 
-        <!-- Flat texture list -->
+        <!-- Flat texture list (Texture mode) -->
         <ListBox Grid.Row="2" Margin="0,6,0,0"
                  IsVisible="{Binding IsTextureMode}"
                  ItemsSource="{Binding TextureItems}"
@@ -93,7 +93,7 @@
           </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- Grouped block list -->
+        <!-- Grouped block list (Block mode) -->
         <ScrollViewer Grid.Row="2" Margin="0,6,0,0"
                       IsVisible="{Binding !IsTextureMode}"
                       HorizontalScrollBarVisibility="Disabled">
@@ -102,7 +102,6 @@
               <DataTemplate x:DataType="vm:BlockGroup">
                 <StackPanel Margin="0,1">
 
-                  <!-- Group header row -->
                   <Grid ColumnDefinitions="Auto,*">
                     <Button Grid.Column="0" Classes="expander"
                             Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ToggleGroupCommand}"
@@ -135,7 +134,6 @@
                     </Button>
                   </Grid>
 
-                  <!-- Child textures -->
                   <ItemsControl ItemsSource="{Binding Items}"
                                 IsVisible="{Binding IsExpanded}"
                                 Margin="24,0,0,2">
@@ -166,51 +164,105 @@
       </Grid>
     </Border>
 
-    <!-- Col 1: Dyes -->
-    <Border Grid.Column="1" Classes="card" Margin="0,0,8,0">
-      <Grid RowDefinitions="Auto,*">
-        <TextBlock Grid.Row="0" Text="Dyes" FontWeight="SemiBold"/>
-        <ListBox Grid.Row="1" Margin="0,6,0,0"
-                 ItemsSource="{Binding DyeItems}"
-                 SelectedItem="{Binding SelectedDyeItem, Mode=TwoWay}"
-                 SelectionMode="Single">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:DyeItem">
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
-                        CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
-                <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
-                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </Grid>
-    </Border>
+    <!-- Col 1: Dyes on top, Colors underneath (single column) -->
+    <Grid Grid.Column="1" Margin="0,0,8,0" RowDefinitions="2*,*">
 
-    <!-- Col 2: Colors -->
-    <Border Grid.Column="2" Classes="card" Margin="0,0,8,0">
-      <Grid RowDefinitions="Auto,*">
-        <TextBlock Grid.Row="0" Text="Colors" FontWeight="SemiBold"/>
-        <ListBox Grid.Row="1" Margin="0,6,0,0" ItemsSource="{Binding CategoryItems}" SelectionMode="Single">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:CategoryItem">
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
-                        CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
-                <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
-                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </Grid>
-    </Border>
+      <!-- Dyes -->
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,8">
+        <Grid RowDefinitions="Auto,*">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="Dyes" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="+ Add"
+                    Padding="10,4" FontSize="11"
+                    Command="{Binding AddDyeCommand}"/>
+          </Grid>
 
-    <!-- Col 3: Main panel -->
-    <Grid Grid.Column="3" RowDefinitions="300,Auto,*">
+          <ListBox Grid.Row="1" Margin="0,6,0,0"
+                   ItemsSource="{Binding DyeItems}"
+                   SelectedItem="{Binding SelectedDyeItem, Mode=TwoWay}"
+                   SelectionMode="Single">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:DyeItem">
+                <Grid ColumnDefinitions="Auto,*,Auto" Background="Transparent">
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Rename..."
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).RenameDyeCommand}"
+                                CommandParameter="{Binding}"/>
+                      <MenuItem Header="Change color..."
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ChangeDyeColorCommand}"
+                                CommandParameter="{Binding}"/>
+                      <Separator/>
+                      <MenuItem Header="Duplicate"
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).DuplicateDyeCommand}"
+                                CommandParameter="{Binding}"/>
+                      <MenuItem Header="Delete"
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).DeleteDyeCommand}"
+                                CommandParameter="{Binding}"/>
+                    </ContextMenu>
+                  </Grid.ContextMenu>
+
+                  <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
+                          CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
+                             VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <!-- Colors for the selected dye -->
+      <Border Grid.Row="1" Classes="card">
+        <Grid RowDefinitions="Auto,*">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="Colors" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="+ Add"
+                    Padding="10,4" FontSize="11"
+                    Command="{Binding AddCategoryCommand}"/>
+          </Grid>
+
+          <ListBox Grid.Row="1" Margin="0,6,0,0"
+                   ItemsSource="{Binding CategoryItems}"
+                   SelectionMode="Single">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:CategoryItem">
+                <Grid ColumnDefinitions="Auto,*,Auto" Background="Transparent">
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Rename..."
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).RenameCategoryCommand}"
+                                CommandParameter="{Binding}"/>
+                      <MenuItem Header="Change color for this dye..."
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ChangeCategoryColorCommand}"
+                                CommandParameter="{Binding}"/>
+                      <Separator/>
+                      <MenuItem Header="Duplicate"
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).DuplicateCategoryCommand}"
+                                CommandParameter="{Binding}"/>
+                      <MenuItem Header="Delete"
+                                Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).DeleteCategoryCommand}"
+                                CommandParameter="{Binding}"/>
+                    </ContextMenu>
+                  </Grid.ContextMenu>
+
+                  <Border Grid.Column="0" Width="16" Height="16" Background="{Binding Brush}"
+                          CornerRadius="3" BorderThickness="1" BorderBrush="#333"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="6,0" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Text="{Binding Hex}" FontSize="10"
+                             VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- Col 2: Main panel -->
+    <Grid Grid.Column="2" RowDefinitions="300,Auto,*">
 
       <Grid Grid.Row="0" ColumnDefinitions="280,*">
         <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">

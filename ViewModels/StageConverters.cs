@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.ViewModels;
+namespace McTextureTweaker.ViewModels;
 
 public static class StageConverters
 {

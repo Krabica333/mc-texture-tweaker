@@ -3,17 +3,17 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TextureTinter.Models;
+using McTextureTweaker.Models;
 
-namespace TextureTinter.Services;
+namespace McTextureTweaker.Services;
 
 public static class ProjectService
 {
     /// <summary>
     /// Root folder for every project. Platform defaults:
-    ///   Windows: %LOCALAPPDATA%\TextureTinter\projects
-    ///   macOS:   ~/Library/Application Support/TextureTinter/projects
-    ///   Linux:   ~/.local/share/TextureTinter/projects
+    ///   Windows: %LOCALAPPDATA%\McTextureTweaker\projects
+    ///   macOS:   ~/Library/Application Support/McTextureTweaker/projects
+    ///   Linux:   ~/.local/share/McTextureTweaker/projects
     /// Falls back to the system temp folder if LocalApplicationData is unavailable.
     /// </summary>
     public static string RootDir { get; } = ResolveRoot();
@@ -27,7 +27,7 @@ public static class ProjectService
                 Environment.SpecialFolderOption.Create);
 
             if (!string.IsNullOrWhiteSpace(baseDir) && Directory.Exists(baseDir))
-                return Path.Combine(baseDir, "TextureTinter", "projects");
+                return Path.Combine(baseDir, ".mctexturetweaker", "projects");
         }
         catch
         {
@@ -35,7 +35,7 @@ public static class ProjectService
         }
 
         // Fallback: system temp
-        var tmp = Path.Combine(Path.GetTempPath(), "TextureTinter", "projects");
+        var tmp = Path.Combine(Path.GetTempPath(), ".mctexturetweaker", "projects");
         Directory.CreateDirectory(tmp);
         return tmp;
     }

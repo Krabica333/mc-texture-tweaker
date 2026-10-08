@@ -4,10 +4,10 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
-using TextureTinter.Models;
-using TextureTinter.ViewModels;
+using McTextureTweaker.Models;
+using McTextureTweaker.ViewModels;
 
-namespace TextureTinter.Views;
+namespace McTextureTweaker.Views;
 
 public partial class Stage2View : UserControl
 {
