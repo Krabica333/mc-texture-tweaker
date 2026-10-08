@@ -139,18 +139,8 @@ Nothing is written into the Minecraft installation folder. Nothing is written in
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- Windows 10 or 11
-- (Optional, for installers) [Inno Setup 6](https://jrsoftware.org/isinfo.php)
 
-### Build
-
-```powershell
-git clone https://github.com/yourname/McTextureTweaker.git
-cd McTextureTweaker
-dotnet restore
-dotnet build -c Debug
-dotnet run
-```
+---
 
 ## Known limitations
 
