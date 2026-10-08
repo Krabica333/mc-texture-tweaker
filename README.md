@@ -1,3 +1,4 @@
+<img width="300" height="300" alt="McTextureTweaker" src="https://github.com/user-attachments/assets/c4c5a579-8a70-4300-abdb-d3aa476e63da" />
 # McTextureTweaker
 
 > A modern, fast, native desktop tool for creating Minecraft resource packs — recolor vanilla and mod textures, paint pixel art on them, and export everything in one go.
