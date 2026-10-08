@@ -1,3 +1,4 @@
+<img width="1125" height="1405" alt="Lovely_NoBG" src="https://github.com/user-attachments/assets/f25f3193-f176-45e0-bf93-4d66bae8d625" />
 <img width="100" height="100" alt="McTextureTweaker" src="https://github.com/user-attachments/assets/c4c5a579-8a70-4300-abdb-d3aa476e63da" />
 
 # McTextureTweaker
@@ -152,6 +153,14 @@ Nothing is written into the Minecraft installation folder. Nothing is written in
 
 ---
 
+## AI Assistance
+
+Parts of this project were developed with the assistance of AI tools (code generation, refactoring, and documentation drafting). All AI-generated code has been reviewed, tested, and adapted by the author before being included. The design decisions, feature set, and overall architecture are the author's own.
+
+This tool is provided as-is. If you spot something that looks off, please [open an issue](../../issues).
+
+---
+
 ## Credits
 
 Author: KrabicaDev
@@ -198,3 +207,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ***Minecraft is a trademark of Mojang Studios / Microsoft. McTextureTweaker or KrabicaDev is not affiliated with, endorsed by, or sponsored by Mojang or Microsoft.***
+
+With <3 KrabicaDev
+<img width="281" height="351" alt="Lovely_NoBG" src="https://github.com/user-attachments/assets/36d0195e-aa6a-419a-b1f7-16d89f2f213f" />
+
