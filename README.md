@@ -2,7 +2,7 @@
 
 # McTextureTweaker
 
-> A modern, fast, native desktop tool for creating Minecraft resource packs — recolor vanilla and mod textures, paint pixel art on them, and export everything in one go.
+> A modern, fast, native desktop tool for creating Minecraft resource packs
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
